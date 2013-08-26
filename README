@@ -1,10 +1,10 @@
-tech: 使用 Google Doc 試算表的資料透過程式自動產生 Sitemap 並自動提交搜尋引擎
+使用 Google Doc 試算表的資料透過程式自動產生 Sitemap 並自動提交搜尋引擎
 
-第一階段：Landing Page 的 Sitemap
+sitemap：Landing Page 的 Sitemap
 - 設計整體架構並正常的運作
 - 透過 Cron Job 定期的產生 Sitemap 並提交給搜尋引擎
 
-第二階段：由程式產生最新的 Sitemap
+dom：由程式產生最新的 Sitemap
 - 會員需求（每日），產生 rd-member.xml 與 rd-member.xml.gz
 -- 每日的最新所有(結婚經驗交流/婚後生活/交易合購/旅遊揪團/徵求廠商/廠商討論/精華文章/香港新人)討論區文章
 -- 每日的最新相簿
