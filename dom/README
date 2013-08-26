@@ -1,0 +1,9 @@
+分別透過URL取得網頁的內容爬出 URL 後產生 Sitemap 並自動提交搜尋引擎
+
+member/ <- 放 rd-member.xml rd-member.xml.gz
+vendor/ <- 放 rd-vendor.xml rd-vendor.xml.gz
+.config.php <- 常數與變數
+.library.php <- 函數庫
+rd-member.php <- 取得會員 UGC 程式
+rd-vendor.php <- 取得廠商 UGC 程式
+simple_html_dom.php <- 透過 URL 取得網頁的內容取得 DOM 的任何資料
