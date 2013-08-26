@@ -1,0 +1,8 @@
+使用 Google Doc 試算表的資料透過程式自動產生 Sitemap 並自動提交搜尋引擎
+
+gdata.php <- 主程式，用來執行 Cron JOB (每個星期五）
+output/ <- 產生的 xml、gzip 檔案都放在這邊
+.account.php <- 設定使用 Google Doc 試算表的帳號資料
+.config.php <- 一些常數與變數的設定檔
+.library.php <- 函數庫
+ZendGdata/ <-  Google Doc API 函數庫
