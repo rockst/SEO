@@ -105,7 +105,7 @@
 		return (preg_match("/[a-zA-Z0-9]+.xml$/i", $xml)) ? true : false;
 	}
 
-	// 檢查 URL 格式 http://(m.)verywed.com
+	// 檢查 URL 格式 http://(m.)yourweb.com
 	function _chkLoc(&$loc) {
 		$loc = htmlspecialchars(trim($loc));
 		if(preg_match("/^http:\/\/(m\.)*" . DOMAIN . "/i", $loc)) {
@@ -189,12 +189,12 @@
 	/*
 	// 比對 pattern 與網址 $url 的相關性，爾後產生多筆分頁網址
 	// 舉例說明：
-	// 	$url: http://verywed.com/vwblog/?p=1
+	// 	$url: http://yourweb.com/vwblog/?p=1
 	// 	$pattern: p=3
 	// 產生
-	// 	http://verywed.com/vwblog/?p=1
-	// 	http://verywed.com/vwblog/?p=2
-	// 	http://verywed.com/vwblog/?p=3
+	// 	http://yourweb.com/vwblog/?p=1
+	// 	http://yourweb.com/vwblog/?p=2
+	// 	http://yourweb.com/vwblog/?p=3
 	*/
 	function buildPageURL($url, $pattern = "") {
 

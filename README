@@ -1,4 +1,8 @@
+
+sitemap/
+
 使用 Google Doc 試算表的資料透過程式自動產生 Sitemap 並自動提交搜尋引擎
 
-sitemap：固定的試算表
-dom：透過網址爬出 URL 產生 Sitemap 並自動提交搜尋引擎
+dom/
+
+透過網址爬出 URL LIKE 產生 Sitemap 並自動提交搜尋引擎

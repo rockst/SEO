@@ -115,8 +115,8 @@
 	echo "產生主要的 " . MainSitemap . ": " . ((buildMainXML($info_array)) ? "成功" : "失敗") . "\n";
 	// 提交搜尋引擎
 	echo "- " . WWWRoot . MainSitemap . "\n";
-	//SubmitSitemapCurl(WWWRoot . MainSitemap);
+	SubmitSitemapCurl(WWWRoot . MainSitemap);
 	echo "- " . ROBOTSSITEMAP . "\n";
-	//SubmitSitemapCurl(ROBOTSSITEMAP);
+	SubmitSitemapCurl(ROBOTSSITEMAP);
 	echo "執行結束時間：" . getNow() . "\n\n";
 ?>
