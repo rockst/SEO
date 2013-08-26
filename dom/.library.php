@@ -1,5 +1,5 @@
 <?php
-
+	// 開始爬網址
 	function sitemapProcess($path, $xml) {
 		$start = getMicrotime();
    	$rows = array();
@@ -77,10 +77,10 @@
 		gzclose($fp);
 		return (file_exists($source)) ? true : false; // 傳回 gzip 檔案是否建立成功
 	}
-
+	
+	// 取得現在日期
 	function getNow() {
 		$D = new DateTime('NOW');
 		return $D->format(DateTime::W3C);
 	}
-
 ?>
