@@ -1,6 +1,6 @@
 <?php
-	// 開始爬網址
-	function sitemapProcess($path, $xml) {
+	// 執行爬網址的主程式
+	function sitemapProcess($path, $xml, $isHeap = false) {
 		$start = getMicrotime();
    	$rows = array();
 		$handle = opendir($path);
@@ -8,7 +8,7 @@
 			if(preg_match("/.php$/i", $entry) && !preg_match("/^simple_html_dom.php$/i", $entry)) {
 				execPHP($rows, $path, $entry);
 				if(count($rows) <= URLLIMIT) {
-					if(buildXML($xml, $rows)) {
+					if(buildXML($xml, $rows, $isHeap)) {
 						if(buildGZ($xml)) {
 							if(filesize(GZROOT . $xml . ".gz") <= XMLSIZE) { 
 								$msg = "處理成功：總筆數 " . count($rows) . " 筆"; 
@@ -46,12 +46,14 @@
 	}
 
 	// 建立 XML 檔案
-	function buildXML($filename, &$rows) {
+	function buildXML($filename, &$rows, $isHeap = false) {
 		// 建立 XML 標頭資料 
 		$source = XMLROOT . $filename;
-		$fp = fopen($source, 'w');
-		fwrite($fp, '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>');
-		fclose($fp);
+		if($isHeap == false) {
+			$fp = fopen($source, 'w');
+			fwrite($fp, '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>');
+			fclose($fp);
+		}
 		// 建立 XML 內容
 		$Sitemap = new SimpleXMLElement($source, null, true);
 		$i = 0;
@@ -63,7 +65,7 @@
 			$URL->addChild('lastmod', getNow());
 			$i++;
 		}
-		$fp = fopen($source, 'w');
+		$fp = fopen($source, (($isHeap) ? "w+" : "w"));
 		fwrite($fp, $Sitemap->asXML());
 		fclose($fp);
 		return (file_exists($source)) ? $i : 0; // 傳回 XML 檔案是否建立成功
@@ -77,10 +79,10 @@
 		gzclose($fp);
 		return (file_exists($source)) ? true : false; // 傳回 gzip 檔案是否建立成功
 	}
-	
-	// 取得現在日期
+
 	function getNow() {
 		$D = new DateTime('NOW');
 		return $D->format(DateTime::W3C);
 	}
+
 ?>
