@@ -1,5 +1,9 @@
 分別透過URL取得網頁的內容爬出 URL 後產生 Sitemap 並自動提交搜尋引擎
 
+8/29
+- 增加累加功能
+
+8/27
 member/ <- 放 rd-member.xml rd-member.xml.gz
 vendor/ <- 放 rd-vendor.xml rd-vendor.xml.gz
 simple_html_dom.php <- 透過 URL 取得網頁的內容取得 DOM 的任何資料

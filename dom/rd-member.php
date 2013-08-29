@@ -1,5 +1,5 @@
 <?php
 	include_once(dirname(__FILE__) . "/.config.php");
 	include_once(dirname(__FILE__) . "/.library.php");
-	sitemapProcess(MEMBERPATH, "rd-member.xml");
+	sitemapProcess(MEMBERPATH, "rd-member-" . date("Ymd") . ".xml");
 ?>
