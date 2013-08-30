@@ -122,17 +122,26 @@ function getURL(&$rows) {
 }
 
 // 從 DOM 中取得連結
-function fetchURL($urls) {
+function fetchURL($urls, $isReturn = false) {
+	if($isReturn) {
+		$rows = array();
+	}
 	foreach($urls as $url) {
 		$html = file_get_html($url[0]);
-		$rows = array();
 		foreach($html->find($url[1]) as $element) {
 			$loc = makURL($url[0], $element->href); // 產生完全的網址
 			if(preg_match("/^http:\/\/(m\.)*verywed.com/i", $loc)) {
-				echo $loc . "\n";
+				if($isReturn) {
+					array_push($rows, $loc);
+				} else {
+					echo $loc . "\n";
+				}
 			}
 		}
 		sleep(1);
+	}
+	if($isReturn) {
+		return $rows;
 	}
 }
 

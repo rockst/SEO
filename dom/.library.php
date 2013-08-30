@@ -85,4 +85,24 @@
 		return $D->format(DateTime::W3C);
 	}
 
+	// 建立主要的 sitemap.xml 檔案
+	function buildMainXML(&$rows, $sitemap) {
+		// 建立 XML 標頭資料 
+		$source = XMLROOT . $sitemap;
+		$fp = fopen($source, 'w');
+		fwrite($fp, '<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></sitemapindex>');
+		fclose($fp);
+		// 建立 XML 內容
+		$Sitemap = new SimpleXMLElement($source, null, true);
+		foreach($rows as $row) {
+			$url = $Sitemap->addChild('sitemap');
+			$url->addChild('loc', WWWRoot . "rd-member-" . $row . ".xml.gz");
+			$url->addChild('lastmod', getNow());
+		}
+		$fp = fopen($source, 'w');
+		fwrite($fp, $Sitemap->asXML());
+		fclose($fp);
+		return (file_exists($source)) ? true : false; // 傳回 XML 檔案是否建立成功
+	}
+
 ?>
