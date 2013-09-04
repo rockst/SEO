@@ -1,5 +1,5 @@
 <?php
 	include_once(dirname(__FILE__) . "/.config.php");
 	include_once(dirname(__FILE__) . "/.library.php");
-	sitemapProcess(VENDORPATH, "rd-vendor.xml");
+	echo "訊息：" . runScript($ven_projects, "rd-vendor", VENDORPATH_DIARY, VENDORPATH_FULL) . "\n";
 ?>

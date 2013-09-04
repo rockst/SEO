@@ -1,4 +1,30 @@
 <?php
+	// 處理
+	function runScript($projects, $script_name, $path_diary, $path_full) {
+		GLOBAL $argv;
+		// 設定是否要日常還是抓取全部
+		if(!isset($argv[1]) || !preg_match("/^(diary|full)+$/i", $argv[1])) {
+			return "請輸入是否要日常還是抓取全部：\n- Example：php " . $script_name . ".php diary|full";
+		}
+		$SCRIPTPATH = ($argv[1] == "diary") ? $path_diary : $path_full;
+		// 可以選擇單一專案或全部
+		if(isset($argv[2])) { // 單一專案
+			if(file_exists($SCRIPTPATH . $argv[2])) {
+				$rows = array($argv[2]);
+			} else {
+				return "資料夾不存在";
+			}
+		} else { // 全部
+			$rows = $projects; 
+		}
+		// 產生 XML, gzip 檔案
+		foreach($rows as $row) {
+			sitemapProcess($SCRIPTPATH . $row . "/", $script_name . "-" . $row . ".xml", (($argv[1] == "diary") ? true : false));
+		}
+		// 更新 Sitemap 索引檔
+ 		return "產生 Sitemap Index: " . ((buildMainXML($projects, $index_name)) ? "成功" : "失敗");
+	}
+
 	// 執行爬網址的主程式
 	function sitemapProcess($path, $xml, $isHeap = false) {
 		$start = getMicrotime();
@@ -68,6 +94,7 @@
 		$fp = fopen($source, (($isHeap) ? "w+" : "w"));
 		fwrite($fp, $Sitemap->asXML());
 		fclose($fp);
+		//exec('sed "s/<\/url>/<\/url>\n/g;" ' . $source . '>' . $source);
 		return (file_exists($source)) ? $i : 0; // 傳回 XML 檔案是否建立成功
 	}
 
