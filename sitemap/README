@@ -1,8 +1,13 @@
 使用 Google Doc 試算表的資料透過程式自動產生 Sitemap 並自動提交搜尋引擎
 
+2013-09-04
+- 增加從 GA 取得資料
+
 ZendGdata/ <-  Google Doc API 函數庫
 output/ <- 產生的 xml、gzip 檔案都放在這邊
-gdata.php <- 主程式，用來執行 Cron JOB (每個星期五）
+gapi.class.php <- 與 ga 之間的 API
+excel.php <- 從 Google Doc Excel 取得資料 
+ga.php <- 從 GA 取得資料
 .account.php
 .config.php
 .library.php

@@ -1,5 +1,4 @@
 <?php
-
 	// 確認是否安裝 PHP Modules
 	function chkModules($name) {
 		echo "確認是否安裝 " . $name . " PHP Modules？";
@@ -215,4 +214,149 @@
 		return $urls;
 	}
 
+	// 檢查日期是否合法
+	function _chkDate($date = "") {
+		if(!$date || empty($date)) { 
+			return false; 
+		}
+		$tmp = @explode("-", $date);
+		if(!checkdate($tmp[1], $tmp[2], $tmp[0])) {
+			echo "date dormat is false (YYYY-MM-DD)\n";
+			return false;
+		}
+		return true;
+	}
+
+	// 比對開始和結束的日期是否不合法
+	function _compDate($date1 = "", $date2 = "") {
+		if(!$date1 || empty($date1)) { return false; }
+		if(!$date2 || empty($date2)) { return false; }
+		$tmp1 = explode("-", $date1);
+		$tmp2 = explode("-", $date2);
+		if(intval($tmp1[0] . $tmp1[1] . $tmp1[2]) > intval($tmp2[0] . $tmp2[1] . $tmp2[2])) {
+			echo "date is false\n";
+			return false;
+		}
+		return true;
+	}
+
+	/*
+	// 從 Google Analytics 取得資料
+	// $ga: Google Analy PHP Insterface Object
+	// $totalCount: 總筆數
+	// $gaResults: 從 GA 取回資料的變數
+	// $ga_id: GA 帳號 ID
+	// $dimensions: 維度
+	// $metrics: 指標
+	// $sort: 排序指標
+	// $filter: 篩選資料指標
+	// $date1: 開始日期
+	// $date2: 結束日期
+	// $offset: 從哪一個位置開始抓資料
+	// $limit: 一次取得幾筆資料
+	*/
+	function getGAResults(&$ga, &$totalCount, &$gaResults, $ga_id, $dimensions, $metrics, $sort, $filter, $date1, $date2, $offset, $limit) {
+		GLOBAL $counter, $result_cnt;
+
+		try {
+			// 產生 request 給 Google Analytics 取得資料
+			$ga->requestReportData($ga_id, $dimensions, $metrics, $sort, $filter, $date1, $date2, $offset, $limit);
+			// 取得總筆數（避免遞回重覆取得資料，只取得一次）
+			if($totalCount == NULL) {
+				$totalCount = intval($ga->getTotalResults());
+			}
+			// 傳送 request 給 Google Analytics 取得資料
+			$rows = $ga->getResults();
+			if(empty($rows) || count($rows) == 0) {
+				return "";
+			}
+			$result_cnt += count($rows);
+			$gaResults = array_merge($gaResults, $rows);
+			unset($tmp);
+			// echo $offset . "-" . $limit . " count: ".count($gaResults)." - cnt: ".$result_cnt . "\n";
+			/*
+			// 使用遞回繼續取得資料
+			echo ".";
+			if($totalCount > 0 && $result_cnt < $totalCount) {
+				$counter += 1;
+				getGAResults($ga, $totalCount, $gaResults, $ga_id, $dimensions, $metrics, $sort, $filter, $date1, $date2, ($limit * $counter + 1), $limit);
+			}
+			*/
+		} catch(exception $e) {
+			exit($e);
+		}
+	}
+
+	// 取得上一週日期
+	function get_befor_week_date() {
+		$num = @date("w", mktime(0, 0, 0, date("m"), date("d"), date("Y")));
+		if($num == 0) { // 因應 GA 週開始是星期日
+			$bw = @date("YW", mktime(0, 0, 0, date("m"), date("d") + 1 - 7, date("Y")));
+		} else {
+			$bw = @date("YW", mktime(0, 0, 0, date("m"), date("d") - 7, date("Y")));
+		}
+		return getWeekDate(substr($bw, 0, 4), substr($bw, 4, 2));
+	}
+
+	// 取得現在是第幾週 
+	function get_today_week() {
+		$weekNum = @date("w", mktime(0, 0, 0, date("m"), date("d"), date("Y")));
+		if($weekNum == 0) { // 因應 GA 週開始是星期日
+			$tw = @date("YW", mktime(0, 0, 0, date("m"), date("d") + 1, date("Y")));
+		} else {
+			$tw = @date("YW", mktime(0, 0, 0, date("m"), date("d"), date("Y")));
+		}
+		return $tw;
+	}
+
+	// 算出前幾週
+	function get_befor_week($year, $weekNum, $inc_week) {
+		$date = getWeekDate($year, $weekNum); // 週換日期
+		if(empty($date[0]) || empty($date[1])) {
+			return 0;
+		}
+		// 開始日期
+		list($y, $m, $d) = explode("-", $date[0]);
+		$num = @date("w", mktime(0, 0, 0, $m, $d, $y));
+		if($num == 0) { // 因應 GA 週開始是星期日
+			$bw = @date("YW", mktime(0, 0, 0, $m, $d + 1 - ($inc_week * 7), $y));
+		} else {
+			$bw = @date("YW", mktime(0, 0, 0, $m, $d - ($inc_week * 7), $y));
+		}
+		return $bw;
+	}
+
+	// 算出後幾週
+	function get_after_week($year, $weekNum, $inc_week) {
+		$date = getWeekDate($year, $weekNum); // 週換日期
+		if(empty($date[0]) || empty($date[1])) {
+			return 0;
+		}
+		// 開始日期
+		list($y, $m, $d) = explode("-", $date[0]);
+		$num = @date("w", mktime(0, 0, 0, $m, $d, $y));
+		if($num == 0) {
+			$iw = @date("YW", mktime(0, 0, 0, $m, $d + 1 + ($inc_week * 7), $y));
+		} else {
+			$iw = @date("YW", mktime(0, 0, 0, $m, $d + ($inc_week * 7), $y));
+		}
+		return $iw;
+	}
+
+	// 週轉換日期 
+	function getWeekDate($year,$weeknum){  
+		$firstdayofyear=@mktime(0,0,0,1,1,$year);  
+		$firstweekday=@date('N',$firstdayofyear);  
+		$firstweenum=@date('W',$firstdayofyear);  
+		if($firstweenum==1){  
+			$day=(1-($firstweekday-1))+7*($weeknum-1);  
+			$startdate=@date('Y-m-d',mktime(0,0,0,1,$day-1,$year));  
+			$enddate=@date('Y-m-d',mktime(0,0,0,1,$day+6-1,$year));  
+		}else{  
+			$day=(9-$firstweekday)+7*($weeknum-1);  
+			$startdate=@date('Y-m-d',mktime(0,0,0,1,$day-1,$year));  
+			$enddate=@date('Y-m-d',mktime(0,0,0,1,$day+6-1,$year));  
+		}  
+		return array($startdate,$enddate);      
+	}
 ?>
