@@ -22,12 +22,14 @@
 	Define('GZROOT', dirname(__FILE__) . '/output/'); // 放 gzip 實體檔案的位置
 	// Google Analytics Profile 
 	$GA_Profile = Array(
-		Array("id"=>5061547), // 婚前 UA-2681455-1
+		"wed" =>Array("id"=>5061547, "name"=>"婚前"), // 婚前
+		"life"=>Array("id"=>61670331, "name"=>"婚後"), // 婚後 
 	);
 	// Google Analytics Set dimensions and metrics
 	$GA_input = Array(
 		// 熱門網頁
 		Array(
+			"profile"=>array($GA_Profile["wed"], $GA_Profile["life"]),
 			"subject" => "熱門網頁",
 			"dimensions" => array("pagePath"),
 			"metrics" => array("pageviews"),
@@ -36,14 +38,25 @@
 		),
 		// 熱門結婚經驗交流的討論串網頁
 		Array(
+			"profile"=>array($GA_Profile["wed"]),
 			"subject" => "熱門結婚經驗交流的討論串網頁",
 			"dimensions" => array("pagePath"),
 			"metrics" => array("pageviews"),
 			"sort" => array("-pageviews"),
 			"filter" => "ga:pagePath =~ ^/forum/expexch/[0-9]+-1.html$"
 		),
+		// 熱門婚後生活的討論串網頁
+		Array(
+			"profile"=>array($GA_Profile["life"]),
+			"subject" => "熱門婚後生活的討論串網頁",
+			"dimensions" => array("pagePath"),
+			"metrics" => array("pageviews"),
+			"sort" => array("-pageviews"),
+			"filter" => "ga:pagePath =~ ^/forum/wedlife/[0-9]+-1.html$"
+		),
 		// 熱門廠商首頁
 		Array(
+			"profile"=>array($GA_Profile["wed"]),
 			"subject" => "熱門廠商首頁",
 			"dimensions" => array("pagePath"),
 			"metrics" => array("pageviews"),
@@ -52,6 +65,7 @@
 		),
 		// 熱門從Facebook來的推薦連結
 		Array(
+			"profile"=>array($GA_Profile["wed"], $GA_Profile["life"]),
 			"subject" => "熱門從Facebook來的推薦連結",
 			"dimensions" => array("landingPagePath"),
 			"metrics" => array("pageviews"),
@@ -60,5 +74,5 @@
 		),
 	);
 	// 一次從 GA 取出幾筆
-	define('LIMIT', 1000);
+	define('LIMIT', 12500);
 ?>

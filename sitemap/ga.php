@@ -38,7 +38,12 @@ EOD;
 	$limit = (!empty($argv[3]) && intval($argv[3]) > 0) ? intval($argv[3]) : LIMIT;
 
 	// GAPI Object
-	$ga = new gapi(USER, PAWD);
+	try {
+		$ga = new gapi(USER, PAWD);
+	} catch (Exception $e) {
+		exit('GA 帳號錯誤: ' . $e->getMessage() . "\n");
+	}
+	
 	$rows = array(); 
 
 	foreach($GA_input as $input) {
@@ -46,17 +51,18 @@ EOD;
 		while(list($key, $value) = each($input)) {
 			$$key = $value;
 		}
-		echo "處理" . $subject . "：\n";
-		if(!isset($dimensions) || !isset($metrics) || !isset($sort)) {
-			echo "- 傳入的設定檔錯誤\n";
+		echo "- 處理" . $subject . "：\n";
+		if(!isset($profile) || !isset($dimensions) || !isset($metrics) || !isset($sort)) {
+			echo "-- 傳入的設定檔錯誤\n";
 			break;
 		}
 		// 取得指標值的方程式
 		$funcname = "get" . $dimensions[0];
 
-		for($i = 0; $i < count($GA_Profile); $i++) 
-		{
-			$item = $GA_Profile[$i]; // 網站設定檔
+		foreach($profile as $item) {
+
+			echo "-- 關於『" . $item["name"] . "』資源.\n";
+
 			$ga_id = $item["id"]; // GA ID
 			$offset = 1; // 從第一個位置開始抓資料
 
@@ -74,29 +80,31 @@ EOD;
 
 			if($totalCount > 0 && count($gaResults) > 0) { // 有資料
 				foreach($gaResults as $result) {
-					$uri = $result->$funcname();
+					$uri = $result->$funcname(); // 取得指標資料
+					// 過濾非 URI 格式與需要登入的網頁
 					if(preg_match("/^\/[a-zA-Z0-9]{1,}/i", $uri) && !preg_match("/^\/(vwMember|mailBox|vendor\/mail|vendor\/login)+/i", $uri)) {
-						echo $uri . "\n";
 						$url = "http://verywed.com" . $uri;
-						if(preg_match("/[0-9]{8,}/i", $url, $matches) && isset($matches[0])) {
+						echo "--- " . $url . "\n";
+						if(preg_match("/[0-9]{8,}/i", $url, $matches) && isset($matches[0])) { // 處理廠商友善網址
 							$url = "http://verywed.com/vendor/key.php?key=" . $matches[0] . "\n";
 						}
-						array_push($rows, array("", $url, "0.8", "never", getNow(), ""));
+						array_push($rows, array("", $url, "0.8", "daily", getNow(), ""));
 					}
 				}
 			} else {
-				echo "- GA 沒有任何資料\n";
+				echo "-- GA 沒有任何資料\n";
 			}
 		}
+		echo "\n";
 	}
-	if(buildXML("rd-ga.xml", $rows) == true) {
-		echo "- 產生 Sitemap 完成\n";
-		if(buildGZ("rd-ga.xml") == true) {
-			echo "- 產生 Gzip 完成\n";
-		} else {
-			echo "- 產生 Gzip 檔失敗\n";
-		}
-	} else {
-		echo "- 產生 Sitemap 失敗\n";
-	}
+
+	if(count($rows) > 0) {
+		if(buildXML("rd-ga.xml", $rows) == true) { // 產生 Sitemap 檔案
+			echo "- 產生 Sitemap 完成\n";
+			if(buildGZ("rd-ga.xml") == true) { // 產生 Gzip 檔案
+				echo "- 產生 Gzip 完成\n";
+			} else { echo "- 產生 Gzip 檔失敗\n"; }
+		} else { echo "- 產生 Sitemap 失敗\n"; }
+	} else { echo "沒有任何資料需要被處理\n"; }
+
 ?>

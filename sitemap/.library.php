@@ -283,7 +283,7 @@
 			}
 			*/
 		} catch(exception $e) {
-			exit($e);
+			echo 'Caught exception: ' . $e->getMessage() . "\n";
 		}
 	}
 
