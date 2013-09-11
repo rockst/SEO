@@ -1,6 +1,6 @@
 <?php
 	// 處理
-	function runScript($projects, $script_name, $path_diary, $path_full) {
+	function runScript($index_name, $projects, $script_name, $path_diary, $path_full) {
 		GLOBAL $argv;
 		// 設定是否要日常還是抓取全部
 		if(!isset($argv[1]) || !preg_match("/^(diary|full)+$/i", $argv[1])) {
