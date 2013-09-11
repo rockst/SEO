@@ -20,6 +20,7 @@
 	Define('FILTERWORKNAME', '/^rd/i'); // 設定檔中的 XML 檔案出現過濾字就不處理
 	Define('XMLROOT', dirname(__FILE__) . '/output/'); // 放 XML 實體檔案的位置
 	Define('GZROOT', dirname(__FILE__) . '/output/'); // 放 gzip 實體檔案的位置
+  Define("SpreadsheetName", "Sitemap - Test"); // 透過試算表命名規則來取得哪幾個試算表文件需要被處理
 	// Google Analytics Profile 
 	$GA_Profile = Array(
 		"wed" =>Array("id"=>5061547, "name"=>"婚前"), // 婚前

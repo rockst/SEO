@@ -1,4 +1,39 @@
 <?php
+
+	// 取得帳號所擁有的試算表文件
+	function lstSpreadsheets() {
+		GLOBAL $SpreadsheetService;
+		$rows = array();
+		$feed = $SpreadsheetService->getSpreadsheetFeed();
+		foreach($feed->entries as $entry) {
+			if(preg_match("/^" . SpreadsheetName . "/i", $entry->title->text)) {
+				$rows[] = array("name"=>$entry->title->text, "key"=>basename($entry->id));
+			}
+		}
+		return $rows;
+	}
+
+	// 取得設定工作表
+	function getWorksheet($spreadsheetsKey, $worksheetId) {
+		GLOBAL $SpreadsheetService;
+		$rows = array();
+		$query = new Zend_Gdata_Spreadsheets_CellQuery();
+		$query->setSpreadsheetKey($spreadsheetsKey);
+		$query->setWorksheetId($worksheetId);
+		$cellFeed = $SpreadsheetService->getCellFeed($query);
+		foreach($cellFeed as $cellEntry) {
+			$row = $cellEntry->cell->getRow();
+			$col = $cellEntry->cell->getColumn();
+			$val = $cellEntry->cell->getText();
+			if($row == 1) {
+				$first[] = $val;
+			} else {
+				$rows[(intval($row) - 2)][$first[($col - 1)]] = $val;
+			}
+		}
+		return $rows;
+	}
+
 	// 確認是否安裝 PHP Modules
 	function chkModules($name) {
 		echo "確認是否安裝 " . $name . " PHP Modules？";
@@ -59,6 +94,38 @@
 					$URL->addChild('lastmod', $row[4]);
 					$i++;
 				}
+			}
+		}
+		$fp = fopen($source, 'w');
+		fwrite($fp, $Sitemap->asXML());
+		fclose($fp);
+		return (file_exists($source)) ? $i : 0; // 傳回 XML 檔案是否建立成功
+	}
+
+	// 建立 XML 檔案
+	function buildXML2($filename, &$rows, $spreadsheetsKey, $worksheetId) {
+		GLOBAL $SpreadsheetService;
+		// 建立 XML 標頭資料 
+		$source = XMLROOT . $filename;
+		$fp = fopen($source, 'w');
+		fwrite($fp, '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>');
+		fclose($fp);
+		// 建立 XML 內容
+		$Sitemap = new SimpleXMLElement($source, null, true);
+		$i = 0;
+		foreach($rows as $j=>$row) {
+			if(_chkLoc($row["URL"]) && _chkPriority($row["priority"]) && _chkChangefreq($row["changefreq"]) && _chkLastmod($row["lastmod"])) { // 驗證
+				// 產生多頁 URL
+				$urls = buildPageURL($row["URL"], ((isset($row["page"])) ? $row["page"] : ""));
+				foreach($urls as $url) {
+					$URL = $Sitemap->addChild('url');
+					$URL->addChild('loc', $url);
+					$URL->addChild('priority', $row["priority"]);
+					$URL->addChild('changefreq', $row["changefreq"]);
+					$URL->addChild('lastmod', getNow());
+					$i++;
+				}
+				$updatedCell = $SpreadsheetService->updateCell(($j + 2), 5, Date("Y-m-d"), $spreadsheetsKey, $worksheetId);
 			}
 		}
 		$fp = fopen($source, 'w');
