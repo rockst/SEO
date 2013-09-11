@@ -4,12 +4,16 @@
 	function lstSpreadsheets() {
 		GLOBAL $SpreadsheetService;
 		$rows = array();
-		$feed = $SpreadsheetService->getSpreadsheetFeed();
-		foreach($feed->entries as $entry) {
-			if(preg_match("/^" . SpreadsheetName . "/i", $entry->title->text)) {
-				$rows[] = array("name"=>$entry->title->text, "key"=>basename($entry->id));
+		try {
+			$feed = $SpreadsheetService->getSpreadsheetFeed();
+			foreach($feed->entries as $entry) {
+				if(preg_match("/^" . SpreadsheetName . "/i", $entry->title->text)) {
+					$rows[] = array("name"=>$entry->title->text, "key"=>basename($entry->id));
+				}
 			}
-		}
+		} catch (Exception $e) {
+			echo "Caught exception lstSpreadsheets: " . $e->getMessage() . "\n";
+		}	
 		return $rows;
 	}
 
@@ -17,31 +21,35 @@
 	function getWorksheet($spreadsheetsKey, $worksheetId) {
 		GLOBAL $SpreadsheetService;
 		$rows = array();
-		$query = new Zend_Gdata_Spreadsheets_CellQuery();
-		$query->setSpreadsheetKey($spreadsheetsKey);
-		$query->setWorksheetId($worksheetId);
-		$cellFeed = $SpreadsheetService->getCellFeed($query);
-		foreach($cellFeed as $cellEntry) {
-			$row = $cellEntry->cell->getRow();
-			$col = $cellEntry->cell->getColumn();
-			$val = $cellEntry->cell->getText();
-			if($row == 1) {
-				$first[] = $val;
-			} else {
-				$rows[(intval($row) - 2)][$first[($col - 1)]] = $val;
+		try {
+			$query = new Zend_Gdata_Spreadsheets_CellQuery();
+			$query->setSpreadsheetKey($spreadsheetsKey);
+			$query->setWorksheetId($worksheetId);
+			$cellFeed = $SpreadsheetService->getCellFeed($query);
+			foreach($cellFeed as $cellEntry) {
+				$row = $cellEntry->cell->getRow();
+				$col = $cellEntry->cell->getColumn();
+				$val = $cellEntry->cell->getText();
+				if($row == 1) {
+					$first[] = $val;
+				} else {
+					$rows[(intval($row) - 2)][$first[($col - 1)]] = $val;
+				}
 			}
-		}
+		} catch (Exception $e) {
+			echo "Caught exception getWorksheet: " . $e->getMessage() . "\n";
+		}	
 		return $rows;
 	}
 
 	// 確認是否安裝 PHP Modules
 	function chkModules($name) {
-		echo "確認是否安裝 " . $name . " PHP Modules？";
+		echo "Install " . $name . " PHP Modules?";
 		if(extension_loaded($name)) {
-			echo "有\n";
+			echo "Yes\n";
 			return true;
 		} else {
-			echo "尚未\n";
+			echo "No\n";
 			return false;
 		}
 	}
@@ -104,7 +112,7 @@
 
 	// 建立 XML 檔案
 	function buildXML2($filename, &$rows, $spreadsheetsKey, $worksheetId) {
-		GLOBAL $SpreadsheetService;
+		GLOBAL $SpreadsheetService, $msg;
 		// 建立 XML 標頭資料 
 		$source = XMLROOT . $filename;
 		$fp = fopen($source, 'w');
@@ -112,26 +120,37 @@
 		fclose($fp);
 		// 建立 XML 內容
 		$Sitemap = new SimpleXMLElement($source, null, true);
-		$i = 0;
-		foreach($rows as $j=>$row) {
-			if(_chkLoc($row["URL"]) && _chkPriority($row["priority"]) && _chkChangefreq($row["changefreq"]) && _chkLastmod($row["lastmod"])) { // 驗證
-				// 產生多頁 URL
-				$urls = buildPageURL($row["URL"], ((isset($row["page"])) ? $row["page"] : ""));
+		$num = 0;
+		foreach($rows as $i=>$row) {
+			$is_incorrectformat = true;
+			if(!_chkLoc($row["URL"])) { 
+				$is_incorrectformat = false;
+				$msg["IncorrectFormat"][] = ($i + 2) . "-B";
+			}
+			if(!_chkPriority($row["priority"])) { 
+				$is_incorrectformat = false;
+				$msg["IncorrectFormat"][] = ($i + 2) . "-C";
+			}
+			if(!_chkChangefreq($row["changefreq"])) { 
+				$is_incorrectformat = false;
+				$msg["IncorrectFormat"][] = ($i + 2) . "-D";
+			}
+			if($is_incorrectformat == true) {
+				$urls = buildPageURL($row["URL"], ((isset($row["page"])) ? $row["page"] : "")); // 產生多頁 URL
 				foreach($urls as $url) {
 					$URL = $Sitemap->addChild('url');
 					$URL->addChild('loc', $url);
 					$URL->addChild('priority', $row["priority"]);
 					$URL->addChild('changefreq', $row["changefreq"]);
 					$URL->addChild('lastmod', getNow());
-					$i++;
+					$num++;
 				}
-				$updatedCell = $SpreadsheetService->updateCell(($j + 2), 5, Date("Y-m-d"), $spreadsheetsKey, $worksheetId);
 			}
 		}
 		$fp = fopen($source, 'w');
 		fwrite($fp, $Sitemap->asXML());
 		fclose($fp);
-		return (file_exists($source)) ? $i : 0; // 傳回 XML 檔案是否建立成功
+		return (file_exists($source)) ? $num : 0; // 傳回 XML 檔案是否建立成功
 	}
 	
 	// 建立主要的 sitemap.xml 檔案
@@ -149,6 +168,26 @@
 				$url->addChild('loc', WWWRoot . $info[$i][1] . ".gz");
 				$url->addChild('lastmod', getNow());
 			}
+		}
+		$fp = fopen($source, 'w');
+		fwrite($fp, $Sitemap->asXML());
+		fclose($fp);
+		return (file_exists($source)) ? true : false; // 傳回 XML 檔案是否建立成功
+	}
+
+	// 建立主要的 sitemap.xml 檔案
+	function buildMainXML2(&$rows) {
+		// 建立 XML 標頭資料 
+		$source = XMLROOT . MainSitemap;
+		$fp = fopen($source, 'w');
+		fwrite($fp, '<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></sitemapindex>');
+		fclose($fp);
+		// 建立 XML 內容
+		$Sitemap = new SimpleXMLElement($source, null, true);
+		foreach($rows as $row) {
+			$url = $Sitemap->addChild('sitemap');
+			$url->addChild('loc', WWWRoot . $row["filename"] . ".gz");
+			$url->addChild('lastmod', getNow());
 		}
 		$fp = fopen($source, 'w');
 		fwrite($fp, $Sitemap->asXML());
@@ -177,46 +216,47 @@
 		if(preg_match("/^http:\/\/(m\.)*" . DOMAIN . "/i", $loc)) {
 			return true;
 		} else {
-			echo "--- loc: " . $loc . " 格式不正確\n";
+			echo "--- loc: " . $loc . " Incorrect Format\n";
 			return false;
 		}
 	}
 
 	// 檢查重要性指標介於 0.0 ~ 1.0
 	function _chkPriority(&$priority) {
+		$buffer = $priority;
 		$priority = sprintf("%01.1f", $priority);	
-		if($priority >= 0 && $priority <= 1) {
+		if($priority >= 0.1 && $priority <= 1) {
 			return true;
 		} else {
-			echo "--- priority: " . $priority . " 格式不正確\n";
+			echo "--- priority: " . $buffer . " Incorrect Format\n";
 			return false;
 		}
 	}
 
 	// 檢查更新頻率 Const: ChangeFreq in .config.php
-	function _chkChangefreq(&$changefreq, $isMsg = true) {
+	function _chkChangefreq(&$changefreq) {
 		$changefreq = trim($changefreq);
 		if(preg_match("/" . ChangeFreq . "/i", $changefreq)) {
 			return true;
 		} else {
-			if($isMsg) echo "--- changefreq: " . $changefreq . " 格式不正確\n";
+			echo "--- changefreq: " . $changefreq . " Incorrect Format\n";
 			return false;
 		}
 	}
 
 	// 檢查最後更新日期格式 YYYY-MM-DD | YYYY/MM/DD	
-	function _chkLastmod(&$lastmod, $isMsg = true) {
+	function _chkLastmod(&$lastmod) {
 		if(preg_match("/^[0-9]{4}(\/|-){1}[0-9]{1,}(\/|-){1}[0-9]{1,}/i", $lastmod)) {
 			// 轉為 W3C 格式
 			$D = new DateTime(trim($lastmod));	
 			$lastmod = $D->format(DateTime::W3C);
 			return true;
 		} else {
-			if($isMsg) echo "--- lastmod: " . $lastmod . " 格式不正確\n";
+			echo "--- lastmod: " . $lastmod . " Incorrect Format\n";
 			return false;
 		}
 	}
-
+	
 	// 取得現在的日期時間
 	function getNow() {
 		$D = new DateTime('NOW');
@@ -227,7 +267,7 @@
 	function SubmitSitemapFGC($xml) {
 		GLOBAL $SearchSite; // in .config.php
 		foreach($SearchSite as $row) {
-			echo "-- 開始提交 " . $row[0] . "："; 
+			echo "-- Submit Sitemap to " . $row[0] . ": "; 
 			$response = file_get_contents($row[1] . urlencode($xml));
 			echo (($response) ? $response : "Failed to submit sitemap") . "\n";
 			sleep(1);
@@ -238,7 +278,7 @@
 	function SubmitSitemapCurl($xml) {
 		GLOBAL $SearchSite; // in .config.php
 		foreach($SearchSite as $row) {
-			echo "-- 開始提交 " . $row[0] . "："; 
+			echo "-- Submit Sitemap to " . $row[0] . ": "; 
 			$ch = curl_init(); 
 			curl_setopt($ch, CURLOPT_URL, $row[1] . urlencode($xml)); 
 			curl_setopt($ch, CURLOPT_HEADER, TRUE); 
@@ -263,9 +303,7 @@
 	// 	http://yourweb.com/vwblog/?p=3
 	*/
 	function buildPageURL($url, $pattern = "") {
-
 		$urls = array();
-
 		// 產生分頁的 URL
 		if($pattern != "" && preg_match_all("/[0-9]{1,}/i", $pattern, $match, PREG_PATTERN_ORDER) && isset($match[0][0]) && intval($match[0][0]) > 0) {
 			$limit = $match[0][0];
@@ -277,7 +315,6 @@
 		} else {
 			array_push($urls, $url);
 		}
-
 		return $urls;
 	}
 

@@ -1,5 +1,9 @@
 使用 Google Doc 試算表的資料透過程式自動產生 Sitemap 並自動提交搜尋引擎
 
+2013-09-11
+- 增加可以寫入 Google doc Excel 的功能
+-- write_excel.php
+
 2013-09-04
 - 增加從 GA 取得資料
 
