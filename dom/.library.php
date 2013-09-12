@@ -22,7 +22,7 @@
 			sitemapProcess($SCRIPTPATH . $row . "/", $script_name . "-" . $row . ".xml", (($argv[1] == "diary") ? true : false));
 		}
 		// 更新 Sitemap 索引檔
- 		return "產生 Sitemap Index: " . ((buildMainXML($projects, $index_name)) ? "成功" : "失敗");
+ 		return "產生 Sitemap Index: " . ((buildMainXML($projects, $index_name, $script_name)) ? "成功" : "失敗");
 	}
 
 	// 執行爬網址的主程式
@@ -113,7 +113,7 @@
 	}
 
 	// 建立主要的 sitemap.xml 檔案
-	function buildMainXML(&$rows, $sitemap) {
+	function buildMainXML(&$rows, $sitemap, $script_name) {
 		// 建立 XML 標頭資料 
 		$source = XMLROOT . $sitemap;
 		$fp = fopen($source, 'w');
@@ -123,7 +123,7 @@
 		$Sitemap = new SimpleXMLElement($source, null, true);
 		foreach($rows as $row) {
 			$url = $Sitemap->addChild('sitemap');
-			$url->addChild('loc', WWWRoot . "rd-member-" . $row . ".xml.gz");
+			$url->addChild('loc', WWWRoot . $script_name . "-" . $row . ".xml.gz");
 			$url->addChild('lastmod', getNow());
 		}
 		$fp = fopen($source, 'w');
