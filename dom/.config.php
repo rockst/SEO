@@ -9,6 +9,15 @@
 	Define('VENDORPATH_HP', dirname(__FILE__) . '/vendor_hp/');
 	Define("URLLIMIT", 50000);
 	Define("XMLSIZE", 10485760);
+   Define("FTP_Server", "beta.home.veryhuman.com"); // Beta FTP Server
+   Define("FTP_Path", "/event/sitemap/"); // Beta FTP Path
+   Define("Rsync_URL", "http://vipupload.verywed.com/rsync.php"); // Rsync Script URL
 	$mem_projects = array("vw", "vwblog", "member", "album", "forum", "evaluate");
 	$ven_projects = array("album", "video", "blog", "prom");
+	// 搜尋引擎
+   $SearchSite = array(
+      array('google', 'http://www.google.com/webmasters/sitemaps/ping?sitemap='),
+      array('bing(webmaster)', 'http://www.bing.com/webmaster/ping.aspx?sitemap='),
+      array('bing', 'http://www.bing.com/ping?sitemap=')
+   );
 ?>

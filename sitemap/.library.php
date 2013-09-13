@@ -1,5 +1,4 @@
 <?php
-
 	// 取得帳號所擁有的試算表文件
 	function lstSpreadsheets() {
 		GLOBAL $SpreadsheetService;
@@ -42,6 +41,66 @@
 		return $rows;
 	}
 
+	// FTP Sitemap 到 beta 機器	
+	function ftp2beta($filename = "") {
+		$conn_id = ftp_connect(FTP_Server); // .config.php
+		$login_result = ftp_login ($conn_id, FTP_USER, FTP_PAWD); // .account.php
+		if($conn_id && $login_result) { 
+			if($filename != "") { // 單個檔案
+				if(!ftp_put($conn_id, FTP_Path . $filename, GZROOT . $filename, FTP_BINARY)) { 
+					echo "FTP upload has failed!\n";
+					return false;
+				}
+			} else { // 整個資料夾
+				ftp_uploaddirectory($conn_id, GZROOT, FTP_Path);
+			}
+			ftp_quit($conn_id);
+			return true;
+		} else {
+			if(!$conn_id) 		 echo "FTP connection has failed!\n";
+			if(!$login_result) echo "Attempted to connect to " . FTP_Server . "for user " . FTP_USER . "\n"; 
+			return false;
+		}
+	}
+	// FTP 整個資料夾裡的檔案
+	function ftp_uploaddirectory($conn_id, $local_dir, $remote_dir) {
+		@ftp_mkdir($conn_id, $remote_dir);
+		$handle = opendir($local_dir);
+		while(($file = readdir($handle)) !== false) {
+			if(($file != '.') && ($file != '..')) {
+				if(is_dir($local_dir . $file)) {
+					ftp_uploaddirectory($conn_id, $local_dir . $file . '/', $remote_dir . $file . '/');
+				} else {
+					$f[] = $file;
+				}
+			}
+		}
+		closedir($handle);
+		if(count($f)) {
+			sort($f);
+			ftp_chdir($conn_id, $remote_dir);
+			foreach ($f as $files) {
+				$from = fopen($local_dir . $files, 'r');
+				ftp_fput($conn_id, $files, $from, FTP_BINARY);
+			}
+		}
+	}
+	// 同步 beta 資料到線上
+	function rsync2online() {
+		// host=&rType=event&inpDir=sitemap&dName=sitemap
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, Rsync_URL); // .config.php
+		curl_setopt($ch, CURLOPT_HEADER, TRUE);
+		curl_setopt($ch, CURLOPT_NOBODY, TRUE);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+		curl_setopt($ch, CURLOPT_POST, TRUE);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(array("host"=>"", "rType"=>"event", "inpDir"=>"sitemap", "dName"=>"sitemap"))); 
+		$head = curl_exec($ch); 
+		$code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		curl_close($ch);
+		return $code;
+	}
+
 	// 確認是否安裝 PHP Modules
 	function chkModules($name) {
 		echo "Install " . $name . " PHP Modules?";
@@ -54,65 +113,9 @@
 		}
 	}
 
-	// 取得帳號下所有的試算表
-	function getWorkFeedNumbs(&$spreadsheetService, &$query) {
-		$query->setWorksheetId(MAINWORKID);
-		$feed = $spreadsheetService->getListFeed($query);
-		$info = array();
-		foreach($feed->entries as $row) {
-			foreach($row->getCustom() as $Custom) {
-				if($Custom->getText()) {
-					array_push($info, array($Custom->rootElement, $Custom->getText()));
-				}
-			}
-		}
-		return $info;
-	}
-
-	// 取得工作表下所有資料
-	function getWorksheetData($feed, &$rows) {
-		foreach($feed->entries as $row) {
-			$column = array();
-			foreach($row->getCustom() as $row2) {
-				array_push($column, $row2->getText());
-			}
-			array_push($rows, $column);
-		}
-	}
-
 	// 建立 XML 檔案
 	function buildXML($filename, &$rows) {
-		// 建立 XML 標頭資料 
-		$source = XMLROOT . $filename;
-		$fp = fopen($source, 'w');
-		fwrite($fp, '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>');
-		fclose($fp);
-		// 建立 XML 內容
-		$Sitemap = new SimpleXMLElement($source, null, true);
-		$i = 0;
-		foreach($rows as $row) {
-			if(_chkLoc($row[1]) && _chkPriority($row[2]) && _chkChangefreq($row[3]) && _chkLastmod($row[4])) { // 驗證
-				// 產生多頁 URL
-				$urls = buildPageURL($row[1], $row[5]);
-				foreach($urls as $url) {
-					$URL = $Sitemap->addChild('url');
-					$URL->addChild('loc', $url);
-					$URL->addChild('priority', $row[2]);
-					$URL->addChild('changefreq', $row[3]);
-					$URL->addChild('lastmod', $row[4]);
-					$i++;
-				}
-			}
-		}
-		$fp = fopen($source, 'w');
-		fwrite($fp, $Sitemap->asXML());
-		fclose($fp);
-		return (file_exists($source)) ? $i : 0; // 傳回 XML 檔案是否建立成功
-	}
-
-	// 建立 XML 檔案
-	function buildXML2($filename, &$rows, $spreadsheetsKey, $worksheetId) {
-		GLOBAL $SpreadsheetService, $msg;
+		GLOBAL $msg;
 		// 建立 XML 標頭資料 
 		$source = XMLROOT . $filename;
 		$fp = fopen($source, 'w');
@@ -154,29 +157,7 @@
 	}
 	
 	// 建立主要的 sitemap.xml 檔案
-	function buildMainXML(&$info) {
-		// 建立 XML 標頭資料 
-		$source = XMLROOT . MainSitemap;
-		$fp = fopen($source, 'w');
-		fwrite($fp, '<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></sitemapindex>');
-		fclose($fp);
-		// 建立 XML 內容
-		$Sitemap = new SimpleXMLElement($source, null, true);
-		for($i = 0; $i < count($info); $i++) {
-			if($info[$i][2] > 0) {
-				$url = $Sitemap->addChild('sitemap');
-				$url->addChild('loc', WWWRoot . $info[$i][1] . ".gz");
-				$url->addChild('lastmod', getNow());
-			}
-		}
-		$fp = fopen($source, 'w');
-		fwrite($fp, $Sitemap->asXML());
-		fclose($fp);
-		return (file_exists($source)) ? true : false; // 傳回 XML 檔案是否建立成功
-	}
-
-	// 建立主要的 sitemap.xml 檔案
-	function buildMainXML2(&$rows) {
+	function buildMainXML(&$rows) {
 		// 建立 XML 標頭資料 
 		$source = XMLROOT . MainSitemap;
 		$fp = fopen($source, 'w');
@@ -186,7 +167,7 @@
 		$Sitemap = new SimpleXMLElement($source, null, true);
 		foreach($rows as $row) {
 			$url = $Sitemap->addChild('sitemap');
-			$url->addChild('loc', WWWRoot . $row["filename"] . ".gz");
+			$url->addChild('loc', WWWRoot . $row["filename"]);
 			$url->addChild('lastmod', getNow());
 		}
 		$fp = fopen($source, 'w');

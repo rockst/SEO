@@ -22,34 +22,106 @@
 			sitemapProcess($SCRIPTPATH . $row . "/", $script_name . "-" . $row . ".xml", (($argv[1] == "diary") ? true : false));
 		}
 		// 更新 Sitemap 索引檔
- 		return "產生 Sitemap Index: " . ((buildMainXML($projects, $index_name, $script_name)) ? "成功" : "失敗");
+ 		echo "產生 Sitemap Index: " . ((buildMainXML($projects, $index_name, $script_name)) ? "成功" : "失敗") . "\n";
+		echo "FTP to beta: " . ((ftp2beta()) ? "success" : "fail") . "\n";
+		echo "Rsync to online: " . ((rsync2online()) ? "success" : "fail") . "\n";
+		echo "Submit " . WWWRoot . $index_name . "\n";
+		SubmitSitemapCurl(WWWRoot . $index_name);
 	}
 
 	// 執行爬網址的主程式
 	function sitemapProcess($path, $xml, $isHeap = false) {
 		$start = getMicrotime();
+		if(!file_exists(GZROOT . $xml . ".gz")) {
+			file_put_contents(GZROOT . $xml . ".gz", file_get_contents(WWWRoot . $xml . ".gz"));
+		}
    	$rows = array();
 		$handle = opendir($path);
 		while (false !== ($entry = readdir($handle))) {
 			if(preg_match("/.php$/i", $entry) && !preg_match("/^simple_html_dom.php$/i", $entry)) {
 				execPHP($rows, $path, $entry);
 				if(count($rows) <= URLLIMIT) {
-					if(buildXML($xml, $rows, $isHeap)) {
-						if(buildGZ($xml)) {
-							if(filesize(GZROOT . $xml . ".gz") <= XMLSIZE) { 
-								$msg = "處理成功：總筆數 " . count($rows) . " 筆"; 
-							} else { $msg = "單一XML的檔案大小不能超過 " . XMLSIZE; }
-						} else { $msg = "建立 Gzip 檔案失敗"; }
-					} else { $msg = "建立 XML 檔案失敗"; }		
-				} else { $msg = "單一XML的筆數不能超過 " . URLLIMIT; }
+					if(unGZ(XMLROOT . $xml)) {
+						if(buildXML($xml, $rows, $isHeap)) {
+							if(buildGZ($xml)) {
+								unlink(XMLROOT . $xml); // 刪除 XML file
+								if(filesize(GZROOT . $xml . ".gz") <= XMLSIZE) { 
+									$message = "處理成功：總筆數 " . count($rows) . " 筆"; 
+								} else { $message = "單一XML的檔案大小不能超過 " . XMLSIZE; }
+							} else { $message = "建立 Gzip 檔案失敗"; }
+						} else { $message = "建立 XML 檔案失敗"; }		
+					} else { $message = "解壓縮檔案失敗"; }
+				} else { $message = "單一XML的筆數不能超過 " . URLLIMIT; }
 			}
 		}
 		echo "===================================================\n";
-		echo "訊息：" . $msg . "\n";
+		echo "訊息：" . $message . "\n";
 		echo "總執行時間：" . (getMicrotime() - $start) . "\n";
 		echo "===================================================\n";
 		closedir($handle);
 	}
+
+   // FTP Sitemap 到 beta 機器
+   function ftp2beta($filename = "") {
+      $conn_id = ftp_connect(FTP_Server); // .config.php
+      $login_result = ftp_login ($conn_id, FTP_USER, FTP_PAWD); // .account.php
+      if($conn_id && $login_result) {
+         if($filename != "") { // 單個檔案
+            if(!ftp_put($conn_id, FTP_Path . $filename, GZROOT . $filename, FTP_BINARY)) {
+               echo "FTP upload has failed!\n";
+               return false;
+            }
+         } else { // 整個資料夾
+            ftp_uploaddirectory($conn_id, GZROOT, FTP_Path);
+         }
+         ftp_quit($conn_id);
+         return true;
+      } else {
+         if(!$conn_id)      echo "FTP connection has failed!\n";
+         if(!$login_result) echo "Attempted to connect to " . FTP_Server . "for user " . FTP_USER . "\n";
+         return false;
+      }
+   }
+
+   // FTP 整個資料夾裡的檔案
+   function ftp_uploaddirectory($conn_id, $local_dir, $remote_dir) {
+      @ftp_mkdir($conn_id, $remote_dir);
+      $handle = opendir($local_dir);
+      while(($file = readdir($handle)) !== false) {
+         if(($file != '.') && ($file != '..')) {
+            if(is_dir($local_dir . $file)) {
+               ftp_uploaddirectory($conn_id, $local_dir . $file . '/', $remote_dir . $file . '/');
+            } else {
+               $f[] = $file;
+            }
+         }
+      }
+      closedir($handle);
+      if(count($f)) {
+         sort($f);
+         ftp_chdir($conn_id, $remote_dir);
+         foreach ($f as $files) {
+            $from = fopen($local_dir . $files, 'r');
+            ftp_fput($conn_id, $files, $from, FTP_BINARY);
+         }
+      }
+   }
+
+   // 同步 beta 資料到線上
+   function rsync2online() {
+      // host=&rType=event&inpDir=sitemap&dName=sitemap
+      $ch = curl_init();
+      curl_setopt($ch, CURLOPT_URL, Rsync_URL); // .config.php
+      curl_setopt($ch, CURLOPT_HEADER, TRUE);
+      curl_setopt($ch, CURLOPT_NOBODY, TRUE);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+      curl_setopt($ch, CURLOPT_POST, TRUE);
+      curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(array("host"=>"", "rType"=>"event", "inpDir"=>"sitemap", "dName"=>"sitemap")));
+      $head = curl_exec($ch);
+      $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+      curl_close($ch);
+      return $code;
+   }
 
 	// 執行 PHP 檔案取得 URL
 	function execPHP(&$rows, $path, $name) {
@@ -94,7 +166,6 @@
 		$fp = fopen($source, (($isHeap) ? "w+" : "w"));
 		fwrite($fp, $Sitemap->asXML());
 		fclose($fp);
-		//exec('sed "s/<\/url>/<\/url>\n/g;" ' . $source . '>' . $source);
 		return (file_exists($source)) ? $i : 0; // 傳回 XML 檔案是否建立成功
 	}
 
@@ -105,6 +176,27 @@
 		gzwrite ($fp, file_get_contents(XMLROOT . $filename));
 		gzclose($fp);
 		return (file_exists($source)) ? true : false; // 傳回 gzip 檔案是否建立成功
+	}
+
+	function unGZ($source) {
+		$file = gzopen($source . ".gz", "rb", 0); 
+		if($file) { 
+			$data = ""; 
+			while(!gzeof($file)) { 
+				$data .= gzread($file, 1024); 
+			} 
+			gzclose($file); 
+			if($data != "") {
+				$fp = fopen($source, 'w');
+				fwrite($fp, $data); 
+				fclose($fp);
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			return false;
+		}
 	}
 
 	function getNow() {
@@ -131,5 +223,23 @@
 		fclose($fp);
 		return (file_exists($source)) ? true : false; // 傳回 XML 檔案是否建立成功
 	}
+
+	// 透過 curl 的方式提交搜尋引擎
+   function SubmitSitemapCurl($xml) {
+      GLOBAL $SearchSite; // in .config.php
+      foreach($SearchSite as $row) {
+         echo "-- Submit Sitemap to " . $row[0] . ": ";
+         $ch = curl_init();
+         curl_setopt($ch, CURLOPT_URL, $row[1] . urlencode($xml));
+         curl_setopt($ch, CURLOPT_HEADER, TRUE);
+         curl_setopt($ch, CURLOPT_NOBODY, TRUE); // remove body
+         curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+         $head = curl_exec($ch);
+         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+         curl_close($ch);
+         echo (($httpCode == 200) ? "Success" : "Failed to submit sitemap") . "\n";
+         sleep(1);
+      }
+   }
 
 ?>

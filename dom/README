@@ -1,23 +1,25 @@
 分別透過URL取得網頁的內容爬出 URL 後產生 Sitemap 並自動提交搜尋引擎
 
+9/13
+# 增加可以 FTP 到 beta.home.veryhuman.com
+# 增加可以 Rsync 到線上的功能
+
 9/4
-- 增加會員與廠商的日常與一次收錄全部產生 XML 的功能
-- 產生會員與廠商的主要 Sitemap 索引功能
+* 增加會員與廠商的日常與一次收錄全部產生 XML 的功能
+* 產生會員與廠商的主要 Sitemap 索引功能
 
 8/30
-- 擴充會員 UGC 的數量，並分散會員 UGC 的檔案
+* 擴充會員 UGC 的數量，並分散會員 UGC 的檔案
 
 8/29
-- 增加累加功能
+* 增加累加功能
 
 8/27
-member_diary <- 會員日常程式
-member_full <- 會員一次收錄全部程式
-vendor_diary <- 廠商日常程式
-vendor_full <- 廠商一次收錄全部程式
-simple_html_dom.php <- 透過 URL 取得網頁的內容取得 DOM 的任何資料
-rd-member.php <- 取得會員日常 UGC 程式
-rd-vendor.php <- 取得廠商日常 UGC 程式
-rd-vendor-hp.php <- 取得廠商首頁 UGC 程式
-.config.php
-.library.php
+* member_diary/ 會員日常程式
+* member_full/ 會員一次收錄全部程式
+* vendor_diary/ 廠商日常程式
+* vendor_full/ 廠商一次收錄全部程式
+* simple_html_dom.php 透過 URL 取得網頁的內容取得 DOM 的任何資料
+* rd-member.php 取得會員日常 UGC 程式
+* rd-vendor.php 取得廠商日常 UGC 程式
+* rd-vendor-hp.php 取得廠商首頁 UGC 程式
