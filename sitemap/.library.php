@@ -124,6 +124,9 @@
 		// 建立 XML 內容
 		$Sitemap = new SimpleXMLElement($source, null, true);
 		$num = 0;
+		echo "- Befor: " . count($rows) . "\n";
+		$rows = array_unique_tree($rows);
+		echo "- After: " . count($rows) . "\n";
 		foreach($rows as $i=>$row) {
 			$is_incorrectformat = true;
 			if(!_chkLoc($row["URL"])) { 
@@ -155,7 +158,42 @@
 		fclose($fp);
 		return (file_exists($source)) ? $num : 0; // 傳回 XML 檔案是否建立成功
 	}
-	
+
+	/** 
+	* The same thing than implode function, but return the keys so 
+	* 
+	* <code> 
+	* $_GET = array('id' => '4587','with' => 'key'); 
+	* ... 
+	* echo shared::implode_with_key('&',$_GET,'='); // Resultado: id=4587&with=key 
+	* ... 
+	* </code> 
+	* 
+	* @param string $glue Oque colocar entre as chave => valor 
+	* @param array $pieces Valores 
+	* @param string $hifen Separar chave da array do valor 
+	* @return string 
+	* @author memandeemail at gmail dot com 
+	*/ 
+	function implode_with_key($glue = null, $pieces, $hifen = ',') { 
+		$return = null; 
+		foreach ($pieces as $tk => $tv) $return .= $glue.$tk.$hifen.$tv; 
+		return substr($return,1); 
+	}
+	/** 
+	* Return unique values from a tree of values 
+	* 
+	* @param array $array_tree 
+	* @return array 
+	* @author memandeemail at gmail dot com 
+	*/
+	function array_unique_tree($array_tree) { 
+		$will_return = array(); $vtemp = array(); 
+		foreach ($array_tree as $tkey => $tvalue) $vtemp[$tkey] = implode_with_key('&',$tvalue,'='); 
+		foreach (array_keys(array_unique($vtemp)) as $tvalue) $will_return[$tvalue] = $array_tree[$tvalue]; 
+		return $will_return; 
+	}
+
 	// 建立主要的 sitemap.xml 檔案
 	function buildMainXML(&$rows) {
 		// 建立 XML 標頭資料 
@@ -167,7 +205,7 @@
 		$Sitemap = new SimpleXMLElement($source, null, true);
 		foreach($rows as $row) {
 			$url = $Sitemap->addChild('sitemap');
-			$url->addChild('loc', WWWRoot . $row["filename"]);
+			$url->addChild('loc', WWWRoot . $row["filename"] . ".gz");
 			$url->addChild('lastmod', getNow());
 		}
 		$fp = fopen($source, 'w');

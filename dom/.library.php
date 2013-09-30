@@ -43,12 +43,14 @@
 				if(count($rows) <= URLLIMIT) {
 					if(unGZ(XMLROOT . $xml)) {
 						if(buildXML($xml, $rows, $isHeap)) {
-							if(buildGZ($xml)) {
-								unlink(XMLROOT . $xml); // 刪除 XML file
-								if(filesize(GZROOT . $xml . ".gz") <= XMLSIZE) { 
-									$message = "處理成功：總筆數 " . count($rows) . " 筆"; 
-								} else { $message = "單一XML的檔案大小不能超過 " . XMLSIZE; }
-							} else { $message = "建立 Gzip 檔案失敗"; }
+							if(slimming($xml)) {
+								if(buildGZ($xml)) {
+									unlink(XMLROOT . $xml); // 刪除 XML file
+									if(filesize(GZROOT . $xml . ".gz") <= XMLSIZE) { 
+										$message = "處理成功：總筆數 " . count($rows) . " 筆"; 
+									} else { $message = "單一XML的檔案大小不能超過 " . XMLSIZE; }
+								} else { $message = "建立 Gzip 檔案失敗"; }
+							} else { $message = "瘦身 XML 檔案失敗"; }		
 						} else { $message = "建立 XML 檔案失敗"; }		
 					} else { $message = "解壓縮檔案失敗"; }
 				} else { $message = "單一XML的筆數不能超過 " . URLLIMIT; }
@@ -167,6 +169,19 @@
 		fwrite($fp, $Sitemap->asXML());
 		fclose($fp);
 		return (file_exists($source)) ? $i : 0; // 傳回 XML 檔案是否建立成功
+	}
+
+	function slimming($filename) {
+		if(!file_exists(XMLROOT . $filename)) return false;
+		$xmls = simplexml_load_string(file_get_contents(XMLROOT . $filename));
+		if(empty($xmls)) return false;
+		$rows = array();
+		foreach($xmls as $xml) {
+			array_push($rows, (string) $xml->loc); 
+		}
+		$rows = @array_unique($rows);
+		if(count($rows) == 0) return false;
+		return buildXML($filename, $rows);
 	}
 
 	// 建立 gzip 檔案 
