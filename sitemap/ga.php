@@ -5,10 +5,10 @@
 	** Rock Lin 09/04-13
 	**/
 
-	include_once(dirname(__FILE__) . "/.account.php"); 	// 設定 FTP
-	include_once(dirname(__FILE__) . "/.config.php"); 		// 設定 Google Analytics 網站設定檔
-	include_once(dirname(__FILE__) . "/.library.php"); 	// 引用常用的函式
-	include_once(dirname(__FILE__) . '/gapi.class.php'); 	// Google Analytics PHP Interface
+	include_once(dirname(__FILE__) . "/.account.php"); // 設定 FTP
+	include_once(dirname(__FILE__) . "/.config.php"); // 設定 Google Analytics 網站設定檔
+	include_once(dirname(__FILE__) . "/.library.php"); // 引用常用的函式
+	include_once(dirname(__FILE__) . "/library/gapi.class.php"); // Google Analytics PHP Interface
 
 	/* 可以不用輸入，預設拿取上週資料 */
 	if(!empty($argv[1]) && !empty($argv[2])) {

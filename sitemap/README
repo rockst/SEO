@@ -1,5 +1,9 @@
 使用 Google Doc 試算表的資料透過程式自動產生 Sitemap 並自動提交搜尋引擎
 
+2013-10-02
+# 增加瘦身 thread 的功能
+# 增加詳細註解
+
 2013-09-13
 # 增加可以 FTP 到 beta.home.veryhuman.com
 # 增加可以 Rsync 到線上的功能
@@ -11,8 +15,8 @@
 * 增加從 GA 取得資料
 
 2013-08-27
-* ZendGdata/ Google Doc API 函數庫
+* library/ZendGdata Google Doc API 函數庫
+* library/gapi.class.php 與 ga 之間的 API
 * output/ 產生的 xml、gzip 檔案都放在這邊
-* gapi.class.php 與 ga 之間的 API
 * spreadsheets.php 從 Google Doc Spreadsheets 取得資料 
 * ga.php 從 GA 取得資料

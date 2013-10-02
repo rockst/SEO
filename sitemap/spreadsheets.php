@@ -1,6 +1,6 @@
 <?php
 	// 設定 Zend PHP 函式庫路徑
-	ini_set("include_path", dirname(__FILE__) . "/ZendGdata/library");
+	ini_set("include_path", dirname(__FILE__) . "/library/ZendGdata/library");
 
 	include_once(dirname(__FILE__) . "/.account.php");
 	include_once(dirname(__FILE__) . "/.config.php");
@@ -41,9 +41,11 @@
 		$set_worksheetId = basename($entry->id); // 找到設定工作表資料
 		$set_worksheet = getWorksheet($spreadsheetsKey, $set_worksheetId);
 		foreach($set_worksheet as $i=>$worksheet) { // 複數工作表
-			echo "-- 【" . $worksheet["name"] . "】Worksheet：\n";
+			echo "-- 【" . $worksheet["name"] . "】Worksheet：";
+			$is_match = false;
 			foreach($feed->entries as $entry) { // 處理工作表中每一列資料
 				if($entry->title->text == $worksheet["name"]) { // 比對設定工作表中 name 欄位是否與工作表名稱一樣
+					$is_match = true;
 					$msg	= array("IncorrectFormat"=>array(), "status"=>array());
 					$rows = getWorksheet($spreadsheetsKey, basename($entry->id)); 
 					$num  = buildXML($worksheet["filename"], $rows); // 產生 XML file
@@ -52,14 +54,14 @@
 							unlink(XMLROOT . $worksheet["filename"]); // 刪除 XML file
 							$set_worksheet[$i]["num"] = $num;
 							$msg["status"][] = "success";
-							echo "--- generate " . $num . " rows\n";
+							echo "產生 " . $num . " threads\n";
 						} else { // 產生 Gzip file 失敗
 							$msg["status"][] = "generate Gzip file fail";
-							echo "--- " . $msg["status"][count($msg["status"])-1] . "\n";
+							echo "\n--- " . $msg["status"][count($msg["status"])-1] . "\n";
 						}
 					} else { // 產生 XML file 失敗
 						$msg["status"][] = "generate XML file fail";
-						echo "--- " . $msg["status"][count($msg["status"])-1] . "\n";
+						echo "\n--- " . $msg["status"][count($msg["status"])-1] . "\n";
 					}
 					// 寫回 Google Doc 設定工作表狀況
 					try {
@@ -70,10 +72,14 @@
 					} catch (Exception $e) {
 						exit("Caught exception: " . $e->getMessage() . "\n");
 					}
-				}
+				} 
+			}
+			if($is_match == false) { 
+				echo "找不到相關工作表\n"; 
 			}
 		}
 		$sitemaps = array_merge($sitemaps, $set_worksheet); // 集合 Sitemap 索引檔資料
+		echo "\n";
 	}
 	// build Sitemap index
 	echo "Generate " . MainSitemap . ": " . ((buildMainXML($sitemaps)) ? "success" : "fail") . "\n";
