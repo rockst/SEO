@@ -1,6 +1,6 @@
 <?php
 	// 廠商影片：每日版
-	include('simple_html_dom.php');
+	include(dirname(__FILE__) . "/simple_html_dom.php");
 	$url = "http://verywed.com/classified/video.php?p=1";
 	for($i = 1; $i <= 2; $i++) {
 		$html = file_get_html(preg_replace("/p=[0-9]+/i", "p=" . $i, $url));

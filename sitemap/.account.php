@@ -1,1 +1,1 @@
-../../.account.php
+/home/rockst/.account.php

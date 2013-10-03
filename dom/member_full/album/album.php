@@ -1,6 +1,6 @@
 <?php
 	// 相簿
-	include('simple_html_dom.php');
+	include(dirname(__FILE__) . "/simple_html_dom.php");
 	$rows = array(
 		array('url'=>'http://verywed.com/album/hot_albums?p=1', 	'page'=>'p=1',  'pattern'=>'div.title a'), // 熱門相簿
 		array('url'=>'http://verywed.com/album/new_albums?p=1', 	'page'=>'p=1',  'pattern'=>'div.title a'), // 最新相簿

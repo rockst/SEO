@@ -1,0 +1,5 @@
+/usr/bin/php -q /home/rockst/SEO/sitemap/spreadsheets.php
+/usr/bin/php -q /home/rockst/SEO/sitemap/ga.php
+/usr/bin/php -q /home/rockst/SEO/dom/rd-member.php diary
+/usr/bin/php -q /home/rockst/SEO/dom/rd-vendor.php diary
+/usr/bin/php -q /home/rockst/SEO/dom/rd-vendor-hp.php

@@ -1,6 +1,6 @@
 <?php
 	// 討論區：每日版
-	include('simple_html_dom.php');
+	include(dirname(__FILE__) . "/simple_html_dom.php");
 	$rows = array(
 		// 結婚經驗交流
 		array('url'=>'http://verywed.com/forum/expexch/list/1.html', 'page'=>'3.html', 'pattern'=>'table tr td.subject a'),

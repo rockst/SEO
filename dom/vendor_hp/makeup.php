@@ -1,5 +1,5 @@
 <?php
-	include('simple_html_dom.php');
+	include(dirname(__FILE__) . "/simple_html_dom.php");
 	$html = file_get_html('http://verywed.com/makeup/list.php');
 	foreach($html->find('div.makeupContent table a') as $element) {
 		if(preg_match("/[0-9]{8,}/i", $element->href, $matches) && isset($matches[0])) {

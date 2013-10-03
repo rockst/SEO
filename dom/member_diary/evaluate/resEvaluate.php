@@ -1,6 +1,6 @@
 <?php
 	// 宴客經驗談：每日版
-	include('simple_html_dom.php');
+	include(dirname(__FILE__) . "/simple_html_dom.php");
 	$count = 15; // 一頁幾筆
 	$limit = 2; // 共幾頁
 

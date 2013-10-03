@@ -1,6 +1,6 @@
 <?php
 	// 喜帖
-	include('simple_html_dom.php');
+	include(dirname(__FILE__) . "/simple_html_dom.php");
 	$html = file_get_html('http://verywed.com/classified/list.php?thread=6');
 	foreach($html->find('div.list_vendor_box_col a.textcolor2') as $element) {
 		if(preg_match("/[0-9]{8,}/i", $element->href, $matches) && isset($matches[0])) {

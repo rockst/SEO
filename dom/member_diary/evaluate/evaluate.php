@@ -1,6 +1,6 @@
 <?php
 	// 婚紗經驗談：每日版
-	include('simple_html_dom.php');
+	include(dirname(__FILE__) . "/simple_html_dom.php");
 	$html = file_get_html('http://verywed.com/evaluate/');
 	foreach($html->find('a[href^=/evaluate/shops]') as $element) { // 公司
 		$url = 'http://verywed.com' . $element->href;  

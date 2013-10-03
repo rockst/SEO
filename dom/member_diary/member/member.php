@@ -1,6 +1,6 @@
 <?php
 	// 會員首頁
-	include('simple_html_dom.php');
+	include(dirname(__FILE__) . "/simple_html_dom.php");
 	$rows = array(
 		array('url'=>'http://verywed.com/forum/expexch/list/1.html', 				'page'=>'3.html', 'pattern'=>'a.memlink'),
 		array('url'=>'http://verywed.com/forum/expexch/list/hitCount-1.html',   'page'=>'3.html', 'pattern'=>'a.memlink'),

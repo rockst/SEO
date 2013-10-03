@@ -1,6 +1,6 @@
 <?php
 	// 會員部落格
-	include('simple_html_dom.php');
+	include(dirname(__FILE__) . "/simple_html_dom.php");
 	$rows = array(
 		array('url'=>'http://verywed.com/vwblog/?p=1', 'page'=>'p=3', 'pattern'=>'div#articles div.wrap div.box div.avatar a'), // 會員部落格
 		array('url'=>'http://verywed.com/vwblog/?p=1', 'page'=>'p=3', 'pattern'=>'div#articles div.wrap div.excerpt h5 a'), // 最新文章

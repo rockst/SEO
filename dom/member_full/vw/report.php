@@ -1,6 +1,6 @@
 <?php
 	// 自制內容
-	include('simple_html_dom.php');
+	include(dirname(__FILE__) . "/simple_html_dom.php");
 	$rows = array(
 		// SNG 報導
 		array('url'=>'http://verywed.com/vwblog/veryWedPR?p=1', 			 'page'=>'p=6', 	'pattern'=>'li.article-title a'),

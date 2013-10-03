@@ -1,6 +1,6 @@
 <?php
 	// 婚戒金飾
-	include('simple_html_dom.php');
+	include(dirname(__FILE__) . "/simple_html_dom.php");
 	$html = file_get_html('http://verywed.com/classified/list.php?thread=3');
 	foreach($html->find('a.bigphototitle,a.phototitle') as $element) {
 		if(preg_match("/[0-9]{8,}/i", $element->href, $matches) && isset($matches[0])) {
