@@ -4,12 +4,14 @@ include(dirname(__FILE__) . "/.config.php");
 include(dirname(__FILE__) . "/simple_html_dom.php");
 
 $rows = array();
+$urls = array();
 
-$list = "http://verywed.com/forum/wedlife";
-$html = file_get_html($list);
-foreach($html->find("td.subject a") as $i=>$element) {
-	if($i == 10) break;
-	$urls[] = $element->href;
+for($p = 1; $p <= 5; $p++) {
+	$list = "http://verywed.com/forum/wedlife/list/" . $p . ".html";
+	$html = file_get_html($list);
+	foreach($html->find("td.subject a") as $i=>$element) {
+		$urls[] = $element->href;
+	}
 }
 
 foreach($urls as $i=>$url) {
@@ -32,14 +34,16 @@ foreach($urls as $i=>$url) {
 
 	// title
 	foreach($html->find("div#post_" . $id . " div.subject h4") as $element) {
-		$rows[$i]["title"] = trim(html2text($element->plaintext));
+		$rows[$i]["title"] = preg_replace("/\s+/u", "", html2text($element->plaintext));
 		break;
 	}
+
 	// body
 	foreach($html->find("div#post_" . $id . " div.dfs") as $element) {
-		$rows[$i]["body"] = trim(html2text($element->plaintext));
+		$rows[$i]["body"] = preg_replace("/\s+/u", "", html2text($element->plaintext));
 		break;
 	}
+
 	// created_time and updated_time
 	foreach($html->find("div#post_" . $id . " p.created") as $element) {
 		if(preg_match_all("/[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/", $element->plaintext, $matches) && !empty($matches[0][0])) {
@@ -49,11 +53,13 @@ foreach($urls as $i=>$url) {
 		}
 		break;
 	}
+
 	// creator
 	foreach($html->find("div#post_" . $id . " a.user_name") as $element) {
-		$rows[$i]["creator"] = trim(html2text($element->plaintext));
+		$rows[$i]["creator"] = html2text($element->plaintext);
 		break;
 	}
+
 	// no_of_replies and no_of_views
 	foreach($html->find("div#post_" . $id . " a[href^=http://verywed.com/forum/userThread/member/]") as $element) {
 		$html2 = file_get_html($element->href);
@@ -68,9 +74,12 @@ foreach($urls as $i=>$url) {
 		foreach($html2->find("td.hitAndReplyCount") as $k=>$element) {
 			$temp[$k]["hitAndReplyCount"] = $element->plaintext;
 		}
-		list($rows[$i]["no_of_replies"], $rows[$i]["no_of_views"]) = explode("/", $temp[$key]["hitAndReplyCount"]);
+		if(!empty($temp[$key]["hitAndReplyCount"])) {
+			list($rows[$i]["no_of_replies"], $rows[$i]["no_of_views"]) = explode("/", $temp[$key]["hitAndReplyCount"]);
+		}
 		break;
 	}
+
 	// tag
 	$rows[$i]["tag"] = array();
 	$limit = 4;
@@ -78,6 +87,7 @@ foreach($urls as $i=>$url) {
 		array_push($rows[$i]["tag"], trim($element->plaintext));
 		if(($j + 1) == $limit) { break; }
 	}
+
 	// author_thumb
 	foreach($html->find("div#post_" . $id . " img.user_cover") as $element) {
 		if(preg_match("/^http:\/\/s.verywed.com/i", $element->src)) {
@@ -85,6 +95,7 @@ foreach($urls as $i=>$url) {
 		}
 		break;
 	}
+
 	// image
 	$rows[$i]["image"] = array();
 	$limit = 4;
@@ -93,5 +104,6 @@ foreach($urls as $i=>$url) {
 		if(($j + 1) == $limit) { break; }
 	}
 }
-buildXML("vw_20131004_0.xml", $rows, true);
+
+buildXML("vw_20131007_2.xml", $rows);
 ?>
