@@ -102,6 +102,8 @@
 	**/
 	function buildXML($filename, &$rows, $isHeap = false) {
 
+		include_once(dirname(__FILE__) . "/SimpleXMLEX.class.php");
+
 		$Dom = new DOMDocument('1.0');
 		$Dom->preserveWhiteSpace = false;
 		$Dom->formatOutput = true;
@@ -110,21 +112,24 @@
 		$source = XMLROOT . $filename;
 		if($isHeap == false) {
 			$fp = fopen($source, 'w');
-			fwrite($fp, '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>');
+			fwrite($fp, '<?xml version="1.0" encoding="UTF-8"?><rawfeed version="1.0"></rawfeed>');
 			fclose($fp);
 		}
 
 		// 建立 XML 內容
-		$XML = new SimpleXMLElement($source, null, true);
+		// $XML = new SimpleXMLElement($source, null, true);
+		$XML = new ExSimpleXMLElement($source, null, true);
 		foreach($rows as $i=>$row) {
 			$Thread = $XML->addChild("addArticle");
 			while(list($key, $value) = each($row)) {
 				if(gettype($value) == "array") {
 					foreach($value as $data) {
-         			$Thread->addChild($key, "<![CDATA[" . htmlspecialchars($data) . "]]>");
+         			// $Thread->addChild($key, "<![CDATA[" . htmlspecialchars($data) . "]]>");
+         			$Thread->addChildCData($key, $data);
 					}
 				} else {
-         		$Thread->addChild($key, "<![CDATA[" . htmlspecialchars($value) . "]]>");
+         		// $Thread->addChild($key, "<![CDATA[" . htmlspecialchars($value) . "]]>");
+         		$Thread->addChildCData($key, $value);
 				}
 			}
 		}
@@ -221,6 +226,7 @@ function html2text($html){
 	$text = html_entity_decode($text, ENT_QUOTES, 'utf-8');
 	// normalize possibly repeated newlines, tabs, spaces to spaces
 	$text = preg_replace('/\s+/u', ' ', $text);
+	$text = preg_replace('//u', '', $text);
 	$text = trim($text);
 	// we must still run htmlentities on anything that comes out!
 	// for instance:
@@ -263,7 +269,7 @@ function normalizeEntities($text) {
 			array('£', 'pound', 163, 'xA3'), // British Pound
 			array('©', 'copy', 169, 'xA9'), // Copyright Sign
 			array('®', 'reg', 174, 'xAE'), // Registered Sign
-			array('™', 'trade', 8482, 'x2122') // TM Sign
+			array('™', 'trade', 8482, 'x2122'), // TM Sign
 		);
 		foreach ($map as $e) {
 			for ($i = 1; $i < count($e); ++$i) {

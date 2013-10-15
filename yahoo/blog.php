@@ -92,6 +92,7 @@ foreach($urls as $i=>$url) {
 		}
 	}
 }
-
-buildXML("vw_20131007_3.xml", $rows);
+$name = "tw_verywed_" . date("Ymd_His") . "_3";
+buildXML($name . ".xml", $rows);
+exec("touch " . XMLROOT . $name . ".done");
 ?>

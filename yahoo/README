@@ -1,0 +1,7 @@
+分別透過 URL 取得網頁的內容產生 XML 準備提交給 Yahoo Search UGC 
+
+* essence.php 討論區精華文章
+* expexch.php 討論區結婚經驗交流文章
+* wedlife.php 討論區婚後生活文章
+* blog.php 會員部落格文章
+* vendor_blog.php 廠商部落格文章

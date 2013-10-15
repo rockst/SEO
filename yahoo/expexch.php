@@ -104,5 +104,7 @@ foreach($urls as $i=>$url) {
 		if(($j + 1) == $limit) { break; }
 	}
 }
-buildXML("vw_20131007_1.xml", $rows);
+$name = "tw_verywed_" . date("Ymd_His") . "_1";
+buildXML($name . ".xml", $rows);
+exec("touch " . XMLROOT . $name . ".done");
 ?>

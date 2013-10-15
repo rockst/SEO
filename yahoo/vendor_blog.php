@@ -53,8 +53,8 @@ foreach($urls as $i=>$url) {
 	}
 
 	// created_time and updated_time
-	foreach($html->find("div.blog_content div[align=right].size13") as $element) {
-		$text = trim(html2text($element->plaintext));
+	foreach($html->find("div.blog_content") as $element) {
+		$text = html2text($element->plaintext);
 		if(preg_match("/(\d{4})\.(\d{2})\.(\d{2}) - (\d{2}):(\d{2}) (AM|PM)+/", $text, $matchs)) {
 			$date = $matchs[1] . "-" . $matchs[2] . "-" . $matchs[3] . " " . (($matchs[6] == "PM") ? ((int)$matchs[4] + 12) : $matchs[4]) . ":" . $matchs[5] . ":00";
 			$D = new DateTime($date);
@@ -82,5 +82,7 @@ foreach($urls as $i=>$url) {
 		if(($j + 1) == $limit) { break; }
 	}
 }
-buildXML("vw_20131007_4.xml", $rows);
+$name = "tw_verywed_" . date("Ymd_His") . "_4";
+buildXML($name . ".xml", $rows);
+exec("touch " . XMLROOT . $name . ".done");
 ?>

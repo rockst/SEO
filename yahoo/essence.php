@@ -9,7 +9,7 @@ $urls = array();
 for($p = 1; $p <= 5; $p++) {
 	$list = "http://verywed.com/forum/essence/list/" . $p . ".html";
 	$html = file_get_html($list);
-	foreach($html->find("td.subject a") as $element) {
+	foreach($html->find("td.subject a") as $j=>$element) {
 		$urls[] = $element->href;
 	}
 }
@@ -105,5 +105,7 @@ foreach($urls as $i=>$url) {
 		if(($j + 1) == $limit) { break; }
 	}
 }
-buildXML("vw_20131007_0.xml", $rows);
+$name = "tw_verywed_" . date("Ymd_His") . "_0";
+buildXML($name . ".xml", $rows);
+exec("touch " . XMLROOT . $name . ".done");
 ?>
