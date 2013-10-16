@@ -1,22 +1,19 @@
 <?php
-include(dirname(__FILE__) . "/.library.php");
-include(dirname(__FILE__) . "/.config.php");
-include(dirname(__FILE__) . "/simple_html_dom.php");
+	include(dirname(__FILE__) . "/.library.php");
+	include(dirname(__FILE__) . "/.config.php");
+	include(dirname(__FILE__) . "/simple_html_dom.php");
 
-$rows = array();
-$urls = array();
+	$rows = array();
+	$urls = get_url_list("http://verywed.com/vwblog/channel/wedding?p={page}", "div#articles div.excerpt h5 a", 50);
 
-for($p = 1; $p <= 10; $p++) {
-	$list = "http://verywed.com/vwblog/channel/wedding?p=" . $p;
-	$html = file_get_html($list);
-	foreach($html->find("div#articles div.excerpt h5 a") as $i=>$element) {
-		$urls[] = $element->href;
-	}
-}
+	foreach($urls as $i=>$url) {
 
-foreach($urls as $i=>$url) {
-	echo ($i + 1) . "- " . $url . "\n";
-	if(preg_match("/^http:\/\/verywed.com\/vwblog\/(.*)\/article\/[0-9]+/i", $url, $matchs) && !empty($matchs[1])) {
+		echo ($i + 1) . "- " . $url . "\n";
+
+		if(!preg_match("/^http:\/\/verywed.com\/vwblog\/(.*)\/article\/[0-9]+/i", $url, $matchs) || empty($matchs[1])) {
+			echo "- URL format is fail\n";
+			continue;
+		}
 
 		$rows[$i]["url"] = $url . "?utm_source=yahoo&utm_medium=ugc";
 		$rows[$i]["blog_url"] = "http://verywed.com/vwblog/" . $matchs[1] . "/?utm_source=yahoo&utm_medium=ugc";
@@ -34,18 +31,21 @@ foreach($urls as $i=>$url) {
 			$rows[$i]["title"] = preg_replace("/\s+/u", "", html2text($element->plaintext));
 			break;
 		}
+		if(empty($rows[$i]["title"])) { unset($rows[$i]); echo "- title is empty\n"; continue; }
 
 		// body
 		foreach($html->find("div.article-body") as $element) {
 			$rows[$i]["body"] = preg_replace("/\s+/u", "", html2text($element->plaintext));
 			break;
 		}
+		if(empty($rows[$i]["body"])) { unset($rows[$i]); echo "- body is empty\n"; continue; }
 
 		// blog_title 
 		foreach($html->find("div#blogsub h2") as $element) {
 			$rows[$i]["blog_title"] = preg_replace("/\s+/u", "", html2text($element->plaintext));
 			break;
 		}
+		if(empty($rows[$i]["blog_title"])) { unset($rows[$i]); echo "- blog_title is empty\n"; continue; }
 
 		// created_time and updated_time
 		foreach($html->find("li.article-date") as $element) {
@@ -63,6 +63,8 @@ foreach($urls as $i=>$url) {
 			$rows[$i]["updated_time"] = $rows[$i]["created_time"]; 
 			break;
 		}
+		if(empty($rows[$i]["created_time"])) { unset($rows[$i]); echo "- created_time is empty\n"; continue; }
+		if(empty($rows[$i]["updated_time"])) { unset($rows[$i]); echo "- updated_time is empty\n"; continue; }
 
 		// creator
 		$rows[$i]["creator"] = preg_replace("/^http:\/\/verywed.com\/vwblog\/(.*)\/article\/\d+/i", "\$1", $url); 
@@ -91,8 +93,8 @@ foreach($urls as $i=>$url) {
 			if(($j + 1) == $limit) { break; }
 		}
 	}
-}
-$name = "tw_verywed_" . date("Ymd_His") . "_3";
-buildXML($name . ".xml", $rows);
-exec("touch " . XMLROOT . $name . ".done");
+
+	$filename = "tw_verywed_" . date("Ymd_His") . "_3";
+	buildXML($filename, $rows);
+
 ?>

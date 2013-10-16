@@ -1,4 +1,24 @@
 <?php
+
+	/**
+	** 透過網址取得 URL 列表
+	*
+	* @param String $url
+	* @param String $pattern
+	* @param Int $limit
+	*	@return Array $urls
+	**/
+	function get_url_list($url, $pattern, $limit = 1) {
+		$urls = array();
+		for($p = 1; $p <= $limit; $p++) {
+			$html = file_get_html(preg_replace("/\{page\}/i", $p, $url));
+			foreach($html->find($pattern) as $j=>$element) {
+				array_push($urls, ((!preg_match("/^http:\/\/verywed.com/i", $element->href)) ? "http://verywed.com" : "") . $element->href);
+			}
+		}
+		return array_unique($urls);
+	}
+
 	/**
 	* FTP Sitemap 到 beta 機器，僅在開發環境適用
 	*
@@ -58,25 +78,6 @@
 	}
 
 	/**
-	* 透過 curl 同步 beta 的 Sitemap 資料到線上機器
-	*
-	* @return Int $code (http request code)
-	**/
-	function rsync2online() {
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, Rsync_URL); // Rsync_URL: .config.php
-		curl_setopt($ch, CURLOPT_HEADER, TRUE);
-		curl_setopt($ch, CURLOPT_NOBODY, TRUE);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-		curl_setopt($ch, CURLOPT_POST, TRUE);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(array("host"=>"", "rType"=>"event", "inpDir"=>"sitemap", "dName"=>"sitemap"))); 
-		$head = curl_exec($ch); 
-		$code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-		curl_close($ch);
-		return $code;
-	}
-
-	/**
 	* 確認是否安裝 PHP Modules
 	*
 	* @param String $name
@@ -94,7 +95,7 @@
 	/**
 	* 建立 XML 檔案實體檔案
 	*
-	* @param String $filename (^[a-zA-Z0-9]+.xml$)
+	* @param String $filename (^[a-zA-Z0-9]+$)
 	* @param Array $rows
 	* @param Array $msg
 	* @param Boolean $isHeap：是否用來疊加 XML 的變數
@@ -109,7 +110,7 @@
 		$Dom->formatOutput = true;
 
 		// 建立 XML 標頭資料 
-		$source = XMLROOT . $filename;
+		$source = XMLROOT . $filename . ".xml";
 		if($isHeap == false) {
 			$fp = fopen($source, 'w');
 			fwrite($fp, '<?xml version="1.0" encoding="UTF-8"?><rawfeed version="1.0"></rawfeed>');
@@ -124,11 +125,9 @@
 			while(list($key, $value) = each($row)) {
 				if(gettype($value) == "array") {
 					foreach($value as $data) {
-         			// $Thread->addChild($key, "<![CDATA[" . htmlspecialchars($data) . "]]>");
          			$Thread->addChildCData($key, $data);
 					}
 				} else {
-         		// $Thread->addChild($key, "<![CDATA[" . htmlspecialchars($value) . "]]>");
          		$Thread->addChildCData($key, $value);
 				}
 			}
@@ -137,7 +136,16 @@
 		$fp = fopen($source, (($isHeap) ? "w+" : "w"));
 		fwrite($fp, $Dom->saveXML());
 		fclose($fp);
-		return (file_exists($source)) ? 1 : 0;
+
+		if(file_exists($source)) {
+			$fp = fopen(XMLROOT . $filename . ".done", "w");
+			fwrite($fp, "");
+			fclose($fp);
+			return true;
+		} else {
+			return false;
+		}
+
 	}
 
 	/** 
@@ -176,31 +184,6 @@
 	}
 
 	/**
-	* 建立主要索引 Sitemap 用的 XML 檔案
-	*
-	* @param Array $rows
-	* @return boolean
-	**/
-	function buildMainXML(&$rows) {
-		// 建立 XML 標頭資料 
-		$source = XMLROOT . MainSitemap;
-		$fp = fopen($source, 'w');
-		fwrite($fp, '<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></sitemapindex>');
-		fclose($fp);
-		// 建立 XML 內容
-		$Sitemap = new SimpleXMLElement($source, null, true);
-		foreach($rows as $row) {
-			$url = $Sitemap->addChild('sitemap');
-			$url->addChild('loc', WWWRoot . $row["filename"] . ".gz");
-			$url->addChild('lastmod', getNow());
-		}
-		$fp = fopen($source, 'w');
-		fwrite($fp, $Sitemap->asXML());
-		fclose($fp);
-		return (file_exists($source)) ? true : false; // 傳回 XML 檔案是否建立成功
-	}
-
-	/**
 	* 取得現在的日期時間
 	*
 	* @return W3C Datetime
@@ -209,41 +192,42 @@
 		$D = new DateTime("NOW");
 		return $D->format(DateTime::W3C);
 	}
-// strip javascript, styles, html tags, normalize entities and spaces
-// based on http://www.php.net/manual/en/function.strip-tags.php#68757
-function html2text($html){
-	$text = $html;
-	static $search = array(
-		'@<script.+?</script>@usi',  // Strip out javascript content
-		'@<style.+?</style>@usi',    // Strip style content
-		'@<!--.+?-->@us',            // Strip multi-line comments including CDATA
-		'@</?[a-z].*?\>@usi',         // Strip out HTML tags
-	);
-	$text = preg_replace($search, ' ', $text);
-	// normalize common entities
-	$text = normalizeEntities($text);
-	// decode other entities
-	$text = html_entity_decode($text, ENT_QUOTES, 'utf-8');
-	// normalize possibly repeated newlines, tabs, spaces to spaces
-	$text = preg_replace('/\s+/u', ' ', $text);
-	$text = preg_replace('//u', '', $text);
-	$text = trim($text);
-	// we must still run htmlentities on anything that comes out!
-	// for instance:
-	// <<a>script>alert('XSS')//<<a>/script>
-	// will become
-	// <script>alert('XSS')//</script>
-	return $text;
-} 
 
-// replace encoded and double encoded entities to equivalent unicode character
-// also see /app/bookmarkletPopup.js
-function normalizeEntities($text) {
-	static $find = array();
-	static $repl = array();
-	if (!count($find)) {
-		// build $find and $replace from map one time
-		$map = array(
+	// strip javascript, styles, html tags, normalize entities and spaces
+	// based on http://www.php.net/manual/en/function.strip-tags.php#68757
+	function html2text($html){
+		$text = $html;
+		static $search = array(
+			'@<script.+?</script>@usi',  // Strip out javascript content
+			'@<style.+?</style>@usi',    // Strip style content
+			'@<!--.+?-->@us',            // Strip multi-line comments including CDATA
+			'@</?[a-z].*?\>@usi',         // Strip out HTML tags
+		);
+		$text = preg_replace($search, ' ', $text);
+		// normalize common entities
+		$text = normalizeEntities($text);
+		// decode other entities
+		$text = html_entity_decode($text, ENT_QUOTES, 'utf-8');
+		// normalize possibly repeated newlines, tabs, spaces to spaces
+		$text = preg_replace('/\s+/u', ' ', $text);
+		$text = preg_replace('//u', '', $text);
+		$text = trim($text);
+		// we must still run htmlentities on anything that comes out!
+		// for instance:
+		// <<a>script>alert('XSS')//<<a>/script>
+		// will become
+		// <script>alert('XSS')//</script>
+		return $text;
+	} 
+
+	// replace encoded and double encoded entities to equivalent unicode character
+	// also see /app/bookmarkletPopup.js
+	function normalizeEntities($text) {
+		static $find = array();
+		static $repl = array();
+		if (!count($find)) {
+			// build $find and $replace from map one time
+			$map = array(
 			array('\'', 'apos', 39, 'x27'), // Apostrophe
 			array('\'', '‘', 'lsquo', 8216, 'x2018'), // Open single quote
 			array('\'', '’', 'rsquo', 8217, 'x2019'), // Close single quote
@@ -270,31 +254,26 @@ function normalizeEntities($text) {
 			array('©', 'copy', 169, 'xA9'), // Copyright Sign
 			array('®', 'reg', 174, 'xAE'), // Registered Sign
 			array('™', 'trade', 8482, 'x2122'), // TM Sign
-		);
-		foreach ($map as $e) {
-			for ($i = 1; $i < count($e); ++$i) {
-				$code = $e[$i];
-				if (is_int($code)) {
-					// numeric entity
-					$regex = "/&(amp;)?#0*$code;/";
+			);
+			foreach ($map as $e) {
+				for ($i = 1; $i < count($e); ++$i) {
+					$code = $e[$i];
+					if (is_int($code)) { // numeric entity
+						$regex = "/&(amp;)?#0*$code;/";
+					} elseif (preg_match('/^.$/u', $code)/* one unicode char*/) { // single character
+						$regex = "/$code/u";
+					} elseif (preg_match('/^x([0-9A-F]{2}){1,2}$/i', $code)) { // hex entity
+						$regex = "/&(amp;)?#x0*" . substr($code, 1) . ";/i";
+					} else { // named entity
+						$regex = "/&(amp;)?$code;/";
+					}
+					$find[] = $regex;
+					$repl[] = $e[0];
 				}
-				elseif (preg_match('/^.$/u', $code)/* one unicode char*/) {
-					// single character
-					$regex = "/$code/u";
-				}
-				elseif (preg_match('/^x([0-9A-F]{2}){1,2}$/i', $code)) {
-					// hex entity
-					$regex = "/&(amp;)?#x0*" . substr($code, 1) . ";/i";
-				}
-				else {
-					// named entity
-					$regex = "/&(amp;)?$code;/";
-				}
-				$find[] = $regex;
-				$repl[] = $e[0];
 			}
-		}
-	} // end first time build
-	return preg_replace($find, $repl, $text);	
-}
+		} // end first time build
+		return preg_replace($find, $repl, $text);	
+
+	}
+
 ?>
