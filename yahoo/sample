@@ -1,0 +1,5 @@
+/usr/bin/php -q essence.php
+/usr/bin/php -q expexch.php
+/usr/bin/php -q wedlife.php
+/usr/bin/php -q blog.php
+/usr/bin/php -q vendor_blog.php
