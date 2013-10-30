@@ -3,16 +3,16 @@
 	include(dirname(__FILE__) . "/.config.php");
 	include(dirname(__FILE__) . "/simple_html_dom.php");
 
-	$page_limit = (!empty($argv[1]) && intval($argv[1]) > 0) ? intval($argv[1]) : 3;
+	$page_limit = (!empty($argv[1]) && intval($argv[1]) > 0) ? intval($argv[1]) : 1;
 	$rows = array();
-	$urls = get_url_list("http://verywed.com/forum/essence/list/{page}.html", "td.subject a[href$=-1.html]", $page_limit);
+	$urls = get_url_list("http://verywed.com/forum/trade/list/{page}.html", "td.subject a[href$=-1.html]", $page_limit);
 
 	foreach($urls as $i=>$url) {
 
 		echo ($i + 1) . "- " . $url . "\n";
 
-		if(!preg_match("/-([0-9]+)-1.html$/i", $url, $matchs) || empty($matchs[1])) {
-			echo "- URL Format is fail\n";
+		if(!preg_match("/([0-9]+)-1.html$/i", $url, $matchs) || empty($matchs[1])) {
+			echo "- URL format is fail\n";
 			continue;
 		}
 
@@ -25,8 +25,7 @@
 		$rows[$i]["language"] = "zh-Hant";
 		$rows[$i]["region"] = "TW";
 		$rows[$i]["site_name"] = "verywed.com";
-		$rows[$i]["category"] = "婚禮";
-		$rows[$i]["quality_type"] = "collections";
+		$rows[$i]["category"] = "婚後";
 
 		$html = file_get_html($url);
 
@@ -107,10 +106,8 @@
 			array_push($rows[$i]["image"], $element->src);
 			if(($j + 1) == $limit) { break; }
 		}
-
 	}
 
-	$filename = "tw_verywed_" . date("Ymd_His") . "_0";
+	$filename = "tw_verywed_" . date("Ymd_His") . "_5";
 	buildXML($filename, $rows);
-
 ?>

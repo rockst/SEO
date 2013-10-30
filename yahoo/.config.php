@@ -1,4 +1,6 @@
 <?php
+	date_default_timezone_set('Asia/Taipei');
+
 	// 定義常數
 	Define("DOMAIN", "verywed.com"); // domain
 	Define("XMLROOT", dirname(__FILE__) . "/output/yahoo/"); // 放 XML 實體檔案的位置

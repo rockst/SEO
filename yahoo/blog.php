@@ -3,8 +3,9 @@
 	include(dirname(__FILE__) . "/.config.php");
 	include(dirname(__FILE__) . "/simple_html_dom.php");
 
+	$page_limit = (!empty($argv[1]) && intval($argv[1]) > 0) ? intval($argv[1]) : 3;
 	$rows = array();
-	$urls = get_url_list("http://verywed.com/vwblog/channel/wedding?p={page}", "div#articles div.excerpt h5 a", 50);
+	$urls = get_url_list("http://verywed.com/vwblog/channel/wedding?p={page}", "div#articles div.excerpt h5 a", $page_limit);
 
 	foreach($urls as $i=>$url) {
 
@@ -38,7 +39,8 @@
 			$rows[$i]["body"] = preg_replace("/\s+/u", "", html2text($element->plaintext));
 			break;
 		}
-		if(empty($rows[$i]["body"])) { unset($rows[$i]); echo "- body is empty\n"; continue; }
+		// if(empty($rows[$i]["body"])) { unset($rows[$i]); echo "- body is empty\n"; continue; }
+		if(empty($rows[$i]["body"])) { $rows[$i]["body"] = $rows[$i]["title"]; }
 
 		// blog_title 
 		foreach($html->find("div#blogsub h2") as $element) {
