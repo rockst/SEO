@@ -1,5 +1,9 @@
-/usr/bin/php -q essence.php
-/usr/bin/php -q expexch.php
-/usr/bin/php -q wedlife.php
-/usr/bin/php -q blog.php
-/usr/bin/php -q vendor_blog.php
+/usr/bin/php -q essence.php 3 
+/usr/bin/php -q expexch.php 5
+/usr/bin/php -q wedlife.php 5
+/usr/bin/php -q trade.php 3
+/usr/bin/php -q travelcomp.php 3
+/usr/bin/php -q mtalks.php 3
+/usr/bin/php -q hongkong.php 1
+/usr/bin/php -q blog.php 3
+/usr/bin/php -q vendor_blog.php 3

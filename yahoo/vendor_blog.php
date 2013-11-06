@@ -3,8 +3,9 @@
 	include(dirname(__FILE__) . "/.config.php");
 	include(dirname(__FILE__) . "/simple_html_dom.php");
 
+	$page_limit = (!empty($argv[1]) && intval($argv[1]) > 0) ? intval($argv[1]) : 5;
 	$rows = array();
-	$urls = get_url_list("http://verywed.com/classified/blog.php?p={page}", "div#list_box_text a.link-71", 50);
+	$urls = get_url_list("http://verywed.com/classified/blog.php?p={page}", "div#list_box_text a.link-71", $page_limit);
 
 	foreach($urls as $i=>$url) {
 
@@ -39,7 +40,8 @@
 			$rows[$i]["body"] = preg_replace("/\s+/u", "", html2text($element->plaintext));
 			break;
 		}
-		if(empty($rows[$i]["body"])) { unset($rows[$i]); echo "- body is empty\n"; continue; }
+		// if(empty($rows[$i]["body"])) { unset($rows[$i]); echo "- body is empty\n"; continue; }
+		if(empty($rows[$i]["body"])) { $rows[$i]["body"] = $rows[$i]["title"]; }
 
 		// creator & blog_title 
 		foreach($html->find("div#banner div.name") as $element) {

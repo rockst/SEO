@@ -1,4 +1,5 @@
 <?php
+	date_default_timezone_set('Asia/Taipei');
 	// 定義常數
 	Define("DOMAIN", "verywed.com"); // domain
 	Define("MainSitemap", "sitemap.xml"); // 主要 sitemap 的檔名
