@@ -1,6 +1,7 @@
 <?php
 	include(dirname(__FILE__) . "/.library.php");
 	include(dirname(__FILE__) . "/.config.php");
+	include(dirname(__FILE__) . "/.account.php");	
 	include(dirname(__FILE__) . "/simple_html_dom.php");
 
 	$page_limit = (!empty($argv[1]) && intval($argv[1]) > 0) ? intval($argv[1]) : 1;

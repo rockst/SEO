@@ -1,6 +1,7 @@
 <?php
 	include(dirname(__FILE__) . "/.library.php");
 	include(dirname(__FILE__) . "/.config.php");
+	include(dirname(__FILE__) . "/.account.php");
 	include(dirname(__FILE__) . "/simple_html_dom.php");
 
 	$page_limit = (!empty($argv[1]) && intval($argv[1]) > 0) ? intval($argv[1]) : 3;
@@ -112,5 +113,4 @@
 
 	$filename = "tw_verywed_" . date("Ymd_His") . "_0";
 	buildXML($filename, $rows);
-
 ?>

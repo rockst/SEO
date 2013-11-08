@@ -20,28 +20,28 @@
 	}
 
 	/**
-	* FTP Sitemap 到 beta 機器，僅在開發環境適用
+	* FTP threads 到 Yahoo 機器，僅在開發環境適用
 	*
 	* @param String $filename（單個檔案）or ""（整個資料夾）
 	* @return boolean
 	**/
-	function ftp2beta($filename = "") {
-		$conn_id 		= ftp_connect(FTP_Server); // FTP_Server: .config.php
-		$login_result 	= ftp_login($conn_id, FTP_USER, FTP_PAWD); // FTP_USER, FTP_PAWD: .account.php
+	function ftp2yahoo($filename = "") {
+		$conn_id 		= ftp_connect(FTP_Yahoo_Server); // FTP_Server: .config.php
+		$login_result 	= ftp_login($conn_id, FTP_Yahoo_USER, FTP_Yahoo_PAWD); // FTP_Yahoo_USER, FTP_Yahoo_PAWD: .account.php
 		if($conn_id && $login_result) { 
-			if($filename != "") { // 單個檔案 ftp 到 beta
-				if(!ftp_put($conn_id, FTP_Path . $filename, GZROOT . $filename, FTP_BINARY)) { 
+			if($filename != "") { // 單個檔案 ftp 到 Yahoo 
+				if(!ftp_put($conn_id, FTP_Yahoo_Path . $filename, XMLROOT . $filename, FTP_BINARY)) { 
 					echo "FTP upload has failed!\n";
 					return false;
 				}
-			} else { // 整個資料夾 ftp 到 beta
-				ftp_uploaddirectory($conn_id, GZROOT, FTP_Path);
+			} else { // 整個資料夾 ftp 到 Yahoo 
+				ftp_uploaddirectory($conn_id, XMLROOT, FTP_Yahoo_Path);
 			}
 			ftp_quit($conn_id);
 			return true;
 		} else {
 			if(!$conn_id) 		 echo "FTP connection has failed\n";
-			if(!$login_result) echo "Attempted to connect to " . FTP_Server . " for user " . FTP_USER . "\n"; 
+			if(!$login_result) echo "Attempted to connect to " . FTP_Yahoo_Server . " for user " . FTP_Yahoo_USER . "\n"; 
 			return false;
 		}
 	}
@@ -141,6 +141,8 @@
 			$fp = fopen(XMLROOT . $filename . ".done", "w");
 			fwrite($fp, "");
 			fclose($fp);
+   		ftp2yahoo($filename . ".xml");
+   		ftp2yahoo($filename . ".done");
 			return true;
 		} else {
 			return false;
@@ -274,6 +276,20 @@
 		} // end first time build
 		return preg_replace($find, $repl, $text);	
 
+	}
+
+	/**
+	* 執行 PHP 檔案取得 URL
+	*
+	* @param Array &$rows：抓取到網址的資料陣列
+	* @param String $path：工具程式位置
+	* @param String $name：工具程式名稱
+	* @return boolean
+	**/
+	function execPHP($file) {
+		$file = dirname(__FILE__) . "/" . $file;
+		exec(escapeshellcmd("/usr/bin/php " . $file), $output);
+		return $output[0];
 	}
 
 ?>
