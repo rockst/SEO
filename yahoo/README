@@ -1,7 +1,6 @@
 分別透過 URL 取得網頁的內容產生 XML 準備提交給 Yahoo Search UGC 
 
-* essence.php 討論區精華文章
-* expexch.php 討論區結婚經驗交流文章
-* wedlife.php 討論區婚後生活文章
-* blog.php 會員部落格文章
-* vendor_blog.php 廠商部落格文章
+* phase0.php 將 XML file 匯入 MongoDB
+* phase1.php 透過 Landing Page URL 取得 thread URL 並且匯入 MongoDB 等待取得資料 => Stage: 1
+* phase2.php 從 MongoDB Stage:1 中取出 thread 資料，從網頁 DOM 取得資料並寫入 MongoDB => Stage: 2 
+* phase3.php 從 MongoDB Stage:2 中取出 thread 資料打包成 XML FTP 給 Yahoo => Stage: 3 
