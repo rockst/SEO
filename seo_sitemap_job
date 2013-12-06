@@ -1,5 +1,14 @@
-/usr/bin/php -q /home/rockst/SEO/sitemap/spreadsheets.php
-/usr/bin/php -q /home/rockst/SEO/sitemap/ga.php
-/usr/bin/php -q /home/rockst/SEO/dom/rd-member.php diary
-/usr/bin/php -q /home/rockst/SEO/dom/rd-vendor.php diary
-/usr/bin/php -q /home/rockst/SEO/dom/rd-vendor-hp.php
+/usr/bin/php -q ./sitemap/spreadsheets.php
+notify-send "Google Drive 的 Sitemap 已經同步了"
+
+/usr/bin/php -q ./sitemap/ga.php
+notify-send "GA 的 Sitemap 已經同步了"
+
+/usr/bin/php -q ./dom/rd-member.php diary
+notify-send "會員 UGc 的 Sitemap 已經同步了"
+
+/usr/bin/php -q ./dom/rd-vendor.php diary
+notify-send "廠商 UGc Sitemap 已經同步了"
+
+/usr/bin/php -q ./dom/rd-vendor-hp.php
+notify-send "廠商專頁 Sitemap 已經同步了"

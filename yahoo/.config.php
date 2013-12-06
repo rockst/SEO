@@ -8,4 +8,8 @@
 	Define("FTP_Path", "/event/sitemap/"); // Beta FTP Path 
 	Define("FTP_Yahoo_Server", "dropbox.yahoo.com"); // Beta FTP Server 
 	Define("FTP_Yahoo_Path", "/"); // Beta FTP Path 
+
+	$Mongo = new MongoClient();
+	$MongoDB = $Mongo->Yahoo;
+	$MongoColl = $MongoDB->thread;
 ?>

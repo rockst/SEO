@@ -1,0 +1,40 @@
+##### 討論區
+# tw_verywed_yyyymmddhis_0
+/usr/bin/php -q forum-essence.php 1 2
+notify-send "婚前精華文章討論區已經產生好 XML"
+
+# tw_verywed_yyyymmddhis_0
+/usr/bin/php -q forum-wlessence.php
+notify-send "婚後精華文章討論區已經產生好 XML"
+
+# tw_verywed_yyyymmddhis_1
+/usr/bin/php -q forum-expexch.php 1 3
+notify-send "結婚經驗交流討論區已經產生好 XML"
+
+# tw_verywed_yyyymmddhis_2
+/usr/bin/php -q forum-wedlife.php 1 3
+notify-send "婚後生活討論區已經產生好 XML"
+
+# tw_verywed_yyyymmddhis_5
+/usr/bin/php -q forum-trade.php 1 2
+notify-send "商品交流區討論區已經產生好 XML"
+
+# tw_verywed_yyyymmddhis_6
+/usr/bin/php -q forum-travelcomp.php 1 2
+notify-send "旅遊糾團討論區已經產生好 XML"
+
+# tw_verywed_yyyymmddhis_7
+/usr/bin/php -q forum-mtalks.php 1 2
+notify-send "廠商討論區已經產生好 XML"
+
+# tw_verywed_yyyymmddhis_8
+/usr/bin/php -q forum-hongkong.php 1 1
+notify-send "香港新人討論區已經產生好 XML"
+
+##### 會員部落格 tw_verywed_yyyymmddhis_3
+/usr/bin/php -q blog.php 1 3 
+notify-send "部落格已經產生好 XML"
+
+##### 廠商部落格 tw_verywed_yyyymmddhis_4
+/usr/bin/php -q vendor_blog.php 1 3 
+notify-send "廠商部落格已經產生好 XML"

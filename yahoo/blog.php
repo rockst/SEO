@@ -1,103 +1,46 @@
 <?php
-	include(dirname(__FILE__) . "/.library.php");
-	include(dirname(__FILE__) . "/.config.php");
-	include(dirname(__FILE__) . "/.account.php");
-	include(dirname(__FILE__) . "/simple_html_dom.php");
+	include_once(dirname(__FILE__) . "/.library.php");
+	include_once(dirname(__FILE__) . "/.config.php");
+	include_once(dirname(__FILE__) . "/simple_html_dom.php");
+	include_once(dirname(__FILE__) . "/Yahoo_UGC_Blog.class.php");
 
-	$page_limit = (!empty($argv[1]) && intval($argv[1]) > 0) ? intval($argv[1]) : 3;
-	$rows = array();
-	$urls = get_url_list("http://verywed.com/vwblog/channel/wedding?p={page}", "div#articles div.excerpt h5 a", $page_limit);
-
-	foreach($urls as $i=>$url) {
-
-		echo ($i + 1) . "- " . $url . "\n";
-
-		if(!preg_match("/^http:\/\/verywed.com\/vwblog\/(.*)\/article\/[0-9]+/i", $url, $matchs) || empty($matchs[1])) {
-			echo "- URL format is fail\n";
-			continue;
-		}
-
-		$rows[$i]["url"] = $url . "?utm_source=yahoo&utm_medium=ugc";
-		$rows[$i]["blog_url"] = "http://verywed.com/vwblog/" . $matchs[1] . "/?utm_source=yahoo&utm_medium=ugc";
-		$rows[$i]["page_no"] = 1;
-		$rows[$i]["content_type"] = "blog";
-		$rows[$i]["language"] = "zh-Hant";
-		$rows[$i]["region"] = "TW";
-		$rows[$i]["site_name"] = "verywed.com";
-		$rows[$i]["category"] = "婚禮";
-
-		$html = file_get_html($url);
-
-		// title
-		foreach($html->find("li.article-title a") as $element) {
-			$rows[$i]["title"] = preg_replace("/\s+/u", "", html2text($element->plaintext));
-			break;
-		}
-		if(empty($rows[$i]["title"])) { unset($rows[$i]); echo "- title is empty\n"; continue; }
-
-		// body
-		foreach($html->find("div.article-body") as $element) {
-			$rows[$i]["body"] = preg_replace("/\s+/u", "", html2text($element->plaintext));
-			break;
-		}
-		// if(empty($rows[$i]["body"])) { unset($rows[$i]); echo "- body is empty\n"; continue; }
-		if(empty($rows[$i]["body"])) { $rows[$i]["body"] = $rows[$i]["title"]; }
-
-		// blog_title 
-		foreach($html->find("div#blogsub h2") as $element) {
-			$rows[$i]["blog_title"] = preg_replace("/\s+/u", "", html2text($element->plaintext));
-			break;
-		}
-		if(empty($rows[$i]["blog_title"])) { unset($rows[$i]); echo "- blog_title is empty\n"; continue; }
-
-		// created_time and updated_time
-		foreach($html->find("li.article-date") as $element) {
-			$text = html2text($element->plaintext);
-			$date = preg_replace("/^(\d{4}) \/ (\d{2}) \/ (\d{2}) \d{2}:\d{2} (AM|PM)+/", "\$1-\$2-\$3", $text);
-			$type = preg_replace("/^(\d{4}) \/ (\d{2}) \/ (\d{2}) (\d{2}):(\d{2}) (AM|PM)+/", "\$6", $text);
-			if($type == "PM") {
-				$time = (int) preg_replace("/^(\d{4}) \/ (\d{2}) \/ (\d{2}) (\d{2}):(\d{2}) (AM|PM)+/", "\$4", $text) + 12;
-				$time.= ":" . preg_replace("/^(\d{4}) \/ (\d{2}) \/ (\d{2}) (\d{2}):(\d{2}) (AM|PM)+/", "\$5:00", $text);
-			} else {
-				$time = preg_replace("/^(\d{4}) \/ (\d{2}) \/ (\d{2}) (\d{2}):(\d{2}) (AM|PM)+/", "\$4:\$5:00", $text);
+	$page_first = (!empty($argv[1]) && intval($argv[1]) > 0) ? intval($argv[1]) : 1;
+	$page_limit = (!empty($argv[2]) && intval($argv[2]) > 0) ? intval($argv[2]) : 3;
+	$data_ary = array(
+		array("http://verywed.com/vwblog/channel/wedding?p={page}", "div#articles div.excerpt h5 a", array("婚禮", "結婚", "禮俗", "婚紗", "新娘秘書", "婚禮紀錄")),
+		array("http://verywed.com/vwblog/channel/baby?p={page}", "div#articles div.excerpt h5 a", array("寶寶", "教養", "健康")),
+		array("http://verywed.com/vwblog/channel/food?p={page}", "div#articles div.excerpt h5 a", array("食譜", "美食", "餐廳")),
+		array("http://verywed.com/vwblog/channel/travel?p={page}", "div#articles div.excerpt h5 a", array("旅遊", "蜜月", "自助婚紗")),
+		array("http://verywed.com/vwblog/channel/wedlife?p={page}", "div#articles div.excerpt h5 a", array("婚後", "婆媳", "心情"))
+	);
+	foreach($data_ary as $data) {
+		echo $data[0] . ":\n";
+		$rows = array();
+		$urls = get_url_list($data[0], $data[1], $page_first, $page_limit);
+		foreach($urls as $i=>$url) {
+			echo ($i + 1) . "- " . $url . "\n";
+			if(!preg_match("/^http:\/\/verywed.com\/vwblog\/(.*)\/article\/[0-9]+/i", $url, $matchs) || empty($matchs[1])) {
+				echo "- URL format is fail\n";
+				continue;
 			}
-			$D = new DateTime($date . " " . $time);
-			$rows[$i]["created_time"] = $D->getTimestamp();
-			$rows[$i]["updated_time"] = $rows[$i]["created_time"]; 
-			break;
-		}
-		if(empty($rows[$i]["created_time"])) { unset($rows[$i]); echo "- created_time is empty\n"; continue; }
-		if(empty($rows[$i]["updated_time"])) { unset($rows[$i]); echo "- updated_time is empty\n"; continue; }
+			$html = file_get_html($url);
+			$YUF = new Yahoo_UGC_Blog();
+			$YUF->set_url($url);
+			$YUF->set_category($data[2]);
 
-		// creator
-		$rows[$i]["creator"] = preg_replace("/^http:\/\/verywed.com\/vwblog\/(.*)\/article\/\d+/i", "\$1", $url); 
+			if(!$YUF->set_blog_url()) { echo "-- blog_url is fail\n"; continue; }
+			if(!$YUF->set_title($html)) { echo "-- title is fail\n"; continue; }
+			if(!$YUF->set_body($html)) { echo "-- body is fail\n"; continue; }
+			if(!$YUF->set_blog_title($html)) { echo "-- blog_title is fail\n"; continue; }
+			if(!$YUF->set_created_time($html)) { echo "-- created_time is fail\n"; continue; }
 
-		// tag
-		$rows[$i]["tag"] = array();
-		$limit = 4;
-		foreach($html->find("li.note-title") as $j=>$element) {
-			array_push($rows[$i]["tag"], trim($element->plaintext));
-			if(($j + 1) == $limit) { break; }
+			$YUF->set_creator($html);
+			$YUF->set_tag($html);
+			$YUF->set_author_thumb($html);
+			$YUF->set_image($html);
+			$rows[$i] = $YUF->xml_mapping();
 		}
-
-		// author_thumb
-		foreach($html->find("div.avatar a img") as $element) {
-			if(preg_match("/^http:\/\/s.verywed.com/i", $element->src)) {
-				$rows[$i]["author_thumb"] = trim($element->src);
-			}
-			break;
-		}
-
-		// image
-		$rows[$i]["image"] = array();
-		$limit = 4;
-		foreach($html->find("div.article-body img[src^=http://s.verywed.com/s1]") as $j=>$element) {
-			array_push($rows[$i]["image"], $element->src);
-			if(($j + 1) == $limit) { break; }
-		}
+		echo "Result: " . Yahoo_UGC_Blog::buildXML("tw_verywed_" . date("Ymd_His") . "_3", $rows) . "\n";
+		sleep(1);
 	}
-
-	$filename = "tw_verywed_" . date("Ymd_His") . "_3";
-	buildXML($filename, $rows);
-
 ?>
