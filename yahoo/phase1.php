@@ -11,6 +11,10 @@
   	get_url_list("http://verywed.com/forum/wlessence", "td.subject a[href$=-1.html]", $page_first, $page_limit, "essence");
 	}
 
+	if($argv[3] == "expexch") {
+  	get_url_list("http://verywed.com/forum/expexch/list/{page}.html", "td.subject a[href$=-1.html]", $page_first, $page_limit, "forum");
+	}
+
 	if($argv[3] == "forum") {
   	get_url_list("http://verywed.com/forum/expexch/list/{page}.html", "td.subject a[href$=-1.html]", $page_first, $page_limit, "forum");
   	get_url_list("http://verywed.com/forum/wedlife/list/{page}.html", "td.subject a[href$=-1.html]", $page_first, $page_limit, "forum");

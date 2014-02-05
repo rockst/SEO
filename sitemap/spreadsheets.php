@@ -89,7 +89,9 @@
 	echo "Rsync to online: " . ((rsync2online()) ? "success" : "fail") . "\n";
 	// Submit 
 	echo "- " . WWWRoot . MainSitemap . "\n";
-	SubmitSitemapCurl(WWWRoot . MainSitemap . "?" . date("Ymd"));
+	// SubmitSitemapCurl(WWWRoot . MainSitemap . "?" . date("Ymd"));
+	SubmitSitemapCurl(WWWRoot . MainSitemap);
 	echo "- " . ROBOTSSITEMAP . "\n";
-	SubmitSitemapCurl(ROBOTSSITEMAP . "?" . date("Ymd"));
+	// SubmitSitemapCurl(ROBOTSSITEMAP . "?" . date("Ymd"));
+	SubmitSitemapCurl(ROBOTSSITEMAP);
 ?>
