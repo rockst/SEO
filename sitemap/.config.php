@@ -73,6 +73,19 @@
 			"filter" => "ga:source == facebook"
 		),
 	);
+	$GA_input2 = Array(
+		// 熱門網頁
+		Array(
+			"profile"=>array($GA_Profile["wed"]),
+			"subject" => "VW 會員使用行動裝置狀況",
+			"dimensions" => array("customVarValue2", "deviceCategory", "date"),
+			"dimensions_key" => array("mem_id", "device", "date"),
+			"dimensions_type" => array("int", "string", "int"),
+			"metrics" => array("pageviews"),
+			"sort" => array("date", "customVarValue2"),
+			"filter" => "ga:customVarName2 == page_wed"
+		),
+	);
 	// 一次從 GA 取出幾筆
 	define("GALIMIT", 12500);
 ?>

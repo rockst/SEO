@@ -90,6 +90,7 @@
 	* @return none
 	**/
 	function ftp_uploaddirectory($conn_id, $local_dir, $remote_dir) {
+		$f = array();
 		@ftp_mkdir($conn_id, $remote_dir);
 		$handle = opendir($local_dir);
 		while(($file = readdir($handle)) !== false) {
