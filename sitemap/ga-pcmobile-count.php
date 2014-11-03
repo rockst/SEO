@@ -1,8 +1,8 @@
 <?php
 	$Mongo = new MongoClient();
 	$MongoDB = $Mongo->ga;
-	$MongoColl1 = $MongoDB->device;
-	$MongoColl2 = $MongoDB->member;
+	$MongoColl1 = $MongoDB->device_201403;
+	$MongoColl2 = $MongoDB->member_201403;
 
 	$MongoCursor1 = $MongoColl1->find();
 	foreach($MongoCursor1 as $document1) {

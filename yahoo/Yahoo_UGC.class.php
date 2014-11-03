@@ -61,14 +61,16 @@ Class Yahoo_UGC {
 
 		public function set_url($url = "") {
 
-			$this->url = trim($url) . "?utm_source=yahoo&utm_medium=ugc";
+			// $this->url = trim($url) . "?utm_source=yahoo&utm_medium=ugc";
+			$this->url = trim($url) . "?src=yahoo_ugc";
 
 		}
 
 		public function set_blog_url($blog_url = "") {
 
 			if(preg_match("/^http(s)*:\/\/verywed.com/i", $blog_url)) {
-				$this->blog_url = trim($blog_url) . "?utm_source=yahoo&utm_medium=ugc";
+				// $this->blog_url = trim($blog_url) . "?utm_source=yahoo&utm_medium=ugc";
+				$this->blog_url = trim($blog_url) . "?src=yahoo_ugc";
 				return true;
 			} else {
 				return false;
@@ -79,7 +81,8 @@ Class Yahoo_UGC {
 		public function set_thread_url($thread_url = "") {
 
 			if(preg_match("/^http(s)*:\/\/verywed.com/i", $thread_url)) {
-				$this->thread_url = trim($thread_url) . "?utm_source=yahoo&utm_medium=ugc";
+				// $this->thread_url = trim($thread_url) . "?utm_source=yahoo&utm_medium=ugc";
+				$this->thread_url = trim($thread_url) . "?src=yahoo_ugc";
 				return true;
 			} else {
 				return false;
@@ -294,7 +297,7 @@ Class Yahoo_UGC {
 					if(gettype($value) == "array") {
 						foreach($value as $data) $Thread->addChildCData($key, $data);
 					} else {
-         		$Thread->addChildCData($key, $value);
+						$Thread->addChildCData($key, $value);
 					}
 				}
 			}
@@ -308,8 +311,8 @@ Class Yahoo_UGC {
 				$fp = fopen(XMLROOT . $filename . ".done", "w");
 				fwrite($fp, "");
 				fclose($fp);
-   			self::ftp2yahoo($filename . ".xml");
-   			self::ftp2yahoo($filename . ".done");
+				// self::ftp2yahoo($filename . ".xml");
+				// self::ftp2yahoo($filename . ".done");
 				return true;
 			} else {
 				return false;
@@ -342,6 +345,56 @@ Class Yahoo_UGC {
 			} else {
 				if(!$conn_id) 		 echo "FTP connection has failed\n";
 				if(!$login_result) echo "Attempted to connect to " . FTP_Yahoo_Server . " for user " . FTP_Yahoo_USER . "\n"; 
+				return false;
+			}
+
+		}
+
+		/**
+		* Remove thread 
+		*
+		* @param String $filename (^[a-zA-Z0-9]+$)
+		* @param Array $rows
+		* @param Array $msg
+		* @return Int $num (threads 數量) or 0 (失敗)
+		**/
+		public function removeThread($filename, &$rows) {
+			include_once(dirname(__FILE__) . "/.config.php");
+			include_once(dirname(__FILE__) . "/SimpleXMLEX.class.php");
+
+			$Dom = new DOMDocument("1.0");
+			$Dom->preserveWhiteSpace = false;
+			$Dom->formatOutput = true;
+
+			// 建立 XML 標頭資料 
+			$source = XMLROOT . $filename . ".xml";
+			$fp = fopen($source, "w");
+			fwrite($fp, '<?xml version="1.0" encoding="UTF-8"?><rawfeed version="1.0"></rawfeed>');
+			fclose($fp);
+
+			// 建立 XML 內容
+			$XML  = new ExSimpleXMLElement($source, null, true);
+			foreach($rows as $i=>$row) {
+				$Thread = $XML->addChild("removeArticle");
+				while(list($key, $value) = each($row)) {
+					if($key == "url") {
+						$Thread->addChildCData("url", $value);
+						break;
+					}
+				}
+			}
+
+			$Dom->loadXML($XML->asXML());
+			$fp = fopen($source, "w");
+			fwrite($fp, $Dom->saveXML());
+			fclose($fp);
+
+			if(file_exists($source)) {
+				$fp = fopen(XMLROOT . $filename . ".done", "w");
+				fwrite($fp, "");
+				fclose($fp);
+				return true;
+			} else {
 				return false;
 			}
 

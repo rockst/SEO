@@ -3,8 +3,13 @@
 	include_once(dirname(__FILE__) . "/.library.php");
 	include_once(dirname(__FILE__) . "/simple_html_dom.php");
 
+// array('fileType' => new MongoRegex('/^image/i'))
+
 	while(1) {
-		$MongoCursor = $MongoColl->find(array("stage" => 1, "msg" => ""))->limit(1000);
+		// $MongoCursor = $MongoColl->find(array("stage" => 1, "msg" => ""))->limit(1000);
+		$MongoCursor = $MongoColl->find(
+					array("stage" => 1, "msg" => "", "type" => "forum", "key"=> new MongoRegex("/\/(expexch|wedlife)+/i"))
+				)->limit(1000);
 		$i = 0;
 		foreach($MongoCursor as $document) {
 			$url = $document["key"];
@@ -17,7 +22,7 @@
 				$YUF = new Yahoo_UGC_Forum($matchs[1]);
 				$YUF->set_url($url);
 				if(preg_match("/expexch/i", $url)) {
-					if(preg_match("/(2757828|2769836)+/", $url)) { phase2_error("This URL is block"); continue; }
+					if(preg_match("/(2757828|2769836|2776865|2754726|2754700)+/", $url)) { phase2_error("This URL is block"); continue; }
 					$YUF->set_category(array("婚禮", "結婚", "禮俗"));
 				} else if(preg_match("/wedlife/i", $url)) {
 					$YUF->set_category(array("婚後", "懷孕", "寶寶", "婆媳", "教養"));

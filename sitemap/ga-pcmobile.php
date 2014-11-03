@@ -13,7 +13,7 @@
 	// MongoDB
 	$Mongo = new MongoClient();
 	$MongoDB = $Mongo->ga;
-	$MongoColl = $MongoDB->device;
+	$MongoColl = $MongoDB->device_201403;
 
 	function mongodb_insert_dc(&$MongoColl, $data) {
 
@@ -98,7 +98,8 @@ EOD;
 						$dimensions_val = ($dimensions_type[$j] == "int") ? (int) $dimensions_val : (string) $dimensions_val;
 						$row[$dimensions_key[$j]] = $dimensions_val; 
 					}
-					echo "{$row["date"]} - {$row["mem_id"]} ({$row["device"]}): " . mongodb_insert_dc($MongoColl, $row) . "\n";
+					// echo "{$row["date"]} - {$row["mem_id"]} ({$row["device"]}): " . mongodb_insert_dc($MongoColl, $row) . "\n";
+					 echo "{$row["mem_id"]} ({$row["device"]}): " . mongodb_insert_dc($MongoColl, $row) . "\n";
 				}
 				$counter++;
 				if((($counter * $limit) + 1) > $totalCount) break;

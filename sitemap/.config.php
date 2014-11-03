@@ -78,11 +78,15 @@
 		Array(
 			"profile"=>array($GA_Profile["wed"]),
 			"subject" => "VW 會員使用行動裝置狀況",
-			"dimensions" => array("customVarValue2", "deviceCategory", "date"),
-			"dimensions_key" => array("mem_id", "device", "date"),
-			"dimensions_type" => array("int", "string", "int"),
+			// "dimensions" => array("customVarValue2", "deviceCategory", "date"),
+			"dimensions" => array("customVarValue2", "deviceCategory"),
+			// "dimensions_key" => array("mem_id", "device", "date"),
+			"dimensions_key" => array("mem_id", "device"),
+			// "dimensions_type" => array("int", "string", "int"),
+			"dimensions_type" => array("int", "string"),
 			"metrics" => array("pageviews"),
-			"sort" => array("date", "customVarValue2"),
+			// "sort" => array("date"),
+			"sort" => array("customVarValue2"),
 			"filter" => "ga:customVarName2 == page_wed"
 		),
 	);
