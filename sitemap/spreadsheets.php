@@ -21,7 +21,7 @@
 	// 連結 Google Doc Spreadsheets
 	try {
 		$SpreadsheetService = new Zend_Gdata_Spreadsheets(Zend_Gdata_ClientLogin::getHttpClient(USER, PAWD, Zend_Gdata_Spreadsheets::AUTH_SERVICE_NAME));
-		$spreadsheets = lstSpreadsheets();
+		$spreadsheets = lstSpreadsheets(SpreadsheetName);
 	} catch (Exception $e) { // 發生錯誤
 		exit("Caught exception Zend_Gdata_Spreadsheets: " . $e->getMessage() . "\n");
 	}

@@ -5,13 +5,13 @@
 	* @param Object $SpreadsheetService
 	* @return Array $rows
 	*/
-	function lstSpreadsheets() {
+	function lstSpreadsheets($SpreadsheetName = "") {
 		GLOBAL $SpreadsheetService;
 		$rows = array();
 		try {
 			$feed = $SpreadsheetService->getSpreadsheetFeed();
 			foreach($feed->entries as $entry) {
-				if(preg_match("/^" . SpreadsheetName . "/i", $entry->title->text)) {
+				if(preg_match("/^" . $SpreadsheetName . "/i", $entry->title->text)) {
 					$rows[] = array("name"=>$entry->title->text, "key"=>basename($entry->id));
 				}
 			}
