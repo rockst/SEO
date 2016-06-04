@@ -8,7 +8,7 @@ notify-send "GA 的 Sitemap 已經同步了"
 notify-send "會員 UGc 的 Sitemap 已經同步了"
 
 /usr/bin/php -q ./dom/rd-vendor.php diary
-notify-send "廠商 UGc Sitemap 已經同步了nnnn"
+notify-send "廠商 UGc Sitemap 已經同步了"
 
 /usr/bin/php -q ./dom/rd-vendor-hp.php
 notify-send "廠商專頁 Sitemap 已經同步了"
