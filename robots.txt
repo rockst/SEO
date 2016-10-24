@@ -1,0 +1,12 @@
+
+# robots.txt
+User-agent: Googlebot
+User-agent: googlebot-image
+User-agent: googlebot-mobile
+User-agent: Slurp
+User-agent: baiduspider 
+User-agent: yahoo-mmcrawler
+User-agent: yahoo-blogs/v3.9 
+User-agent: * 
+Disallow: /admin/
+Sitemap: https://example.com/sitemap.xml
